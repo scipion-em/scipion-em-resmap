@@ -1,3 +1,4 @@
+# coding: latin-1
 # **************************************************************************
 # *
 # * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
@@ -24,11 +25,28 @@
 # *
 # **************************************************************************
 """
-This sub-package contains protocol for ResMap
+Bibtex string file for Xmipp package.
 """
-from bibtex import _bibtex # Load bibtex dict with references
-_logo = "resmap_logo.png"
-_references = ['kucukelbir2014']
 
-from protocol_resmap import ProtResMap
+_bibtexStr = """
 
+@article{kucukelbir2014,
+  title={Quantifying the local resolution of cryo-EM density maps},
+  author={Kucukelbir, Alp and Sigworth, Fred J and Tagare, Hemant D},
+  journal={Nature methods},
+  volume={11},
+  number={1},
+  pages={63--65},
+  year={2014},
+  publisher={Nature Publishing Group},
+  doi = {http://dx.doi.org/10.1038/nmeth.2727}
+}
+
+
+"""
+
+
+
+from pyworkflow.utils import parseBibTex
+
+_bibtex = parseBibTex(_bibtexStr)  
