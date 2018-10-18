@@ -24,14 +24,13 @@
 # *
 # **************************************************************************
 """
-Protocol wrapper around the ResMap tool for local resolutio
+Protocol wrapper around the ResMap tool for local resolution
 """
 
 import os
 import sys
 from cPickle import loads, dumps
 import numpy as np
-
 
 from pyworkflow.object import String
 import pyworkflow.protocol.params as params
@@ -40,7 +39,8 @@ from pyworkflow.em.convert import ImageHandler
 from pyworkflow.gui.plotter import Plotter
 from pyworkflow.utils import exists
 
-RESMAP_HOME = 'RESMAP_HOME'
+from resmap.constants import RESMAP_HOME
+from resmap import Plugin
 
 
 class ProtResMap(ProtAnalysis3D):
@@ -48,8 +48,8 @@ class ProtResMap(ProtAnalysis3D):
     ResMap is software tool for computing the local resolution of 3D
     density maps studied in structural biology, primarily by cryo-electron
     microscopy (cryo-EM).
-     
-    Please find the manual at http://resmap.sourceforge.net 
+
+    Please find the manual at http://resmap.sourceforge.net
     """
     _label = 'local resolution'
 
@@ -65,25 +65,13 @@ class ProtResMap(ProtAnalysis3D):
            please make sure that the spectrum does not blow up near Nyquist.
     """
 
-    @classmethod
-    def validateInstallation(cls):
-        """ This function will be used to check if package is properly installed."""
-        missingPaths = ["%s: %s" % (var, os.environ[var])
-                        for var in [RESMAP_HOME]
-                        if not os.path.exists(os.environ[var])]
-
-        if missingPaths:
-            return ["Missing variables:"] + missingPaths
-        else:
-            return []  # No errors
-
     def __init__(self, **kwargs):
         ProtAnalysis3D.__init__(self, **kwargs)
         self.histogramData = String()
-        self.plotData = String() # store some values for later plot
-             
-    #--------------------------- DEFINE param functions --------------------------------------------   
-    
+        self.plotData = String()  # store some values for later plot
+
+    # --------------------------- DEFINE param functions --------------------------------------------
+
     def _defineParams(self, form):
         form.addSection(label='Input')
         form.addParam('useSplitVolume', params.BooleanParam, default=False,
@@ -126,33 +114,33 @@ class ProtResMap(ProtAnalysis3D):
                       label="Angstroms")
         line.addParam('prewhitenRamp', params.FloatParam, default=1,
                       label='Ramp')
-        
+
         group = form.addGroup('Extra parameters')
-        #form.addSection(label='Optional')
+        # form.addSection(label='Optional')
         group.addParam('stepRes', params.FloatParam, default=1,
-                      label='Step size (Ang):',
-                      help='in Angstroms (min 0.25, default 1.0)')
-        line = group.addLine('Resolution Range (A)', 
-                            help="Default (0): algorithm will start a just above\n"
-                                 "             2*voxelSize until 4*voxelSize.   \n"
-                                 "These fields are provided to accelerate computation "
-                                 "if you are only interested in analyzing a specific "
-                                 "resolution range. It is usually a good idea to provide "
-                                 "a maximum resolution value to save time. Another way to "
-                                 "save computation is to provide a larger step size.")
+                       label='Step size (Ang):',
+                       help='in Angstroms (min 0.25, default 1.0)')
+        line = group.addLine('Resolution Range (A)',
+                             help="Default (0): algorithm will start a just above\n"
+                                  "             2*voxelSize until 4*voxelSize.   \n"
+                                  "These fields are provided to accelerate computation "
+                                  "if you are only interested in analyzing a specific "
+                                  "resolution range. It is usually a good idea to provide "
+                                  "a maximum resolution value to save time. Another way to "
+                                  "save computation is to provide a larger step size.")
         line.addParam('minRes', params.FloatParam, default=0, label='Min')
         line.addParam('maxRes', params.FloatParam, default=0, label='Max')
         group.addParam('pVal', params.FloatParam, default=0.05,
-                      label='Confidence level:',
-                      help="P-value, usually between [0.01, 0.05].\n\n"
-                           "This is the p-value of the statistical hypothesis test "
-                           "on which ResMap is based on. It is customarily set to  "
-                           "0.05 although you are welcome to reduce it (e.g. 0.01) "
-                           "if you would like to obtain a more conservative result. "
-                           "Empirically, ResMap results are not much affected by the p-value.")
-                     
-    #--------------------------- INSERT steps functions --------------------------------------------  
-    
+                       label='Confidence level:',
+                       help="P-value, usually between [0.01, 0.05].\n\n"
+                            "This is the p-value of the statistical hypothesis test "
+                            "on which ResMap is based on. It is customarily set to  "
+                            "0.05 although you are welcome to reduce it (e.g. 0.01) "
+                            "if you would like to obtain a more conservative result. "
+                            "Empirically, ResMap results are not much affected by the p-value.")
+
+    # --------------------------- INSERT steps functions --------------------------------------------
+
     def _insertAllSteps(self):
         # Insert processing steps
         if self.useSplitVolume:
@@ -162,22 +150,22 @@ class ProtResMap(ProtAnalysis3D):
             inputs = [self.inputVolume]
             self.volumeHalf1.set(None)
             self.volumeHalf2.set(None)
-            
+
         locations = [i.get().getLocation() for i in inputs]
-            
+
         self._insertFunctionStep('convertInputStep', *locations)
-        self._insertFunctionStep('estimateResolutionStep', 
-                                 self.pVal.get(), 
-                                 self.minRes.get(), 
-                                 self.maxRes.get(), 
+        self._insertFunctionStep('estimateResolutionStep',
+                                 self.pVal.get(),
+                                 self.minRes.get(),
+                                 self.maxRes.get(),
                                  self.stepRes.get(),
                                  self.prewhitenAng.get(),
                                  self.prewhitenRamp.get())
 
-    #--------------------------- STEPS functions --------------------------------------------       
-    
+    # --------------------------- STEPS functions --------------------------------------------
+
     def convertInputStep(self, volLocation1, volLocation2=None):
-        """ Convert input volume to .mrc as expected by ResMap. 
+        """ Convert input volume to .mrc as expected by ResMap.
         Params:
             volLocation1: a tuple containing index and filename of the input volume.
             volLocation2: if not None, a tuple like volLocation1 for the split volume.
@@ -185,9 +173,10 @@ class ProtResMap(ProtAnalysis3D):
         ih = ImageHandler()
         ih.convert(volLocation1, self._getPath('volume1.map'))
         if volLocation2 is not None:
-            ih.convert(volLocation2, self._getPath('volume2.map')) 
+            ih.convert(volLocation2, self._getPath('volume2.map'))
 
-    def estimateResolutionStep(self, pValue, minRes, maxRes, stepRes, ang, rampWeight):
+    def estimateResolutionStep(self, pValue, minRes, maxRes, stepRes, ang,
+                               rampWeight):
         """ Call ResMap.py with the appropriate parameters. """
         results = self.runResmap(self._getPath())
 
@@ -206,7 +195,7 @@ class ProtResMap(ProtAnalysis3D):
     def savePlots(self, results=None):
         """ Store png images of the plots to be used as images, """
         # Add resmap libraries to the path
-        sys.path.append(os.environ['RESMAP_HOME'])
+        sys.path.append(Plugin.getVar(RESMAP_HOME))
         # This is needed right now because we are having
         # some memory problem with matplotlib plots right now in web
         Plotter.setBackend('Agg')
@@ -220,8 +209,8 @@ class ProtResMap(ProtAnalysis3D):
         plot.savefig(self._getExtraPath('histogram.png'))
         plot.close()
 
-    #--------------------------- INFO functions --------------------------------------------
-    
+    # --------------------------- INFO functions --------------------------------------------
+
     def _summary(self):
         summary = []
 
@@ -233,7 +222,7 @@ class ProtResMap(ProtAnalysis3D):
             summary.append("Output is not ready yet.")
 
         return summary
-    
+
     def _validate(self):
         errors = []
 
@@ -241,14 +230,16 @@ class ProtResMap(ProtAnalysis3D):
             half1 = self.volumeHalf1.get()
             half2 = self.volumeHalf2.get()
             if half1.getSamplingRate() != half2.getSamplingRate():
-                errors.append('The selected half volumes have not the same pixel size.')
+                errors.append(
+                    'The selected half volumes have not the same pixel size.')
             if half1.getXDim() != half2.getXDim():
-                errors.append('The selected half volumes have not the same dimensions.')
-                
+                errors.append(
+                    'The selected half volumes have not the same dimensions.')
+
         return errors
-    
-    #--------------------------- UTILS functions --------------------------------------------
- 
+
+    # --------------------------- UTILS functions --------------------------------------------
+
     def runResmap(self, workingDir, wizardMode=False):
         """ Prepare the args dictionary to be used
         and call the ResMap algorithm.
@@ -258,37 +249,38 @@ class ProtResMap(ProtAnalysis3D):
                 to display the pre-whitening GUI and only that.
         with the  """
         self._enterDir(workingDir)
-        
+
         volumes = ['volume1.map', 'volume2.map']
-        
+
         # Add resmap libraries to the path
-        sys.path.append(os.environ[RESMAP_HOME])
+        sys.path.append(Plugin.getVar(RESMAP_HOME))
         from ResMap_algorithm import ResMap_algorithm
         from ResMap_fileIO import MRC_Data
-        
+
         # Always read the first volume as mrc data
-        data1 = MRC_Data(volumes[0],'ccp4')
-        
+        data1 = MRC_Data(volumes[0], 'ccp4')
+
         prewhitenArgs = {'display': wizardMode,
-                         'force-stop': wizardMode                         
+                         'force-stop': wizardMode
                          }
-        if (self.prewhitenAng.hasValue() and 
-            self.prewhitenRamp.hasValue()):
+        if (self.prewhitenAng.hasValue() and
+                self.prewhitenRamp.hasValue()):
             prewhitenArgs['newElbowAngstrom'] = self.prewhitenAng.get()
             prewhitenArgs['newRampWeight'] = self.prewhitenRamp.get()
-            
+
         args = {'pValue': self.pVal.get(),
-                'minRes': self.minRes.get(), 
+                'minRes': self.minRes.get(),
                 'maxRes': self.maxRes.get(),
                 'stepRes': self.stepRes.get(),
-                'chimeraLaunch': False, # prevent ResMap to launch some graphical analysis
-                'graphicalOutput': False, 
+                'chimeraLaunch': False,
+                # prevent ResMap to launch some graphical analysis
+                'graphicalOutput': False,
                 'scipionPrewhitenParams': prewhitenArgs
                 }
-        
+
         if self.useSplitVolume:
             # Read the second splitted volume
-            data2 = MRC_Data(volumes[1],'ccp4')
+            data2 = MRC_Data(volumes[1], 'ccp4')
             args.update({'vxSize': self.volumeHalf1.get().getSamplingRate(),
                          'inputFileName1': 'volume1.map',
                          'inputFileName2': 'volume2.map',
@@ -299,41 +291,42 @@ class ProtResMap(ProtAnalysis3D):
             args.update({'vxSize': self.inputVolume.get().getSamplingRate(),
                          'inputFileName': 'volume1.map',
                          'data': data1,
-                         })   
-            
-        results = ResMap_algorithm(**args)  
+                         })
+
+        results = ResMap_algorithm(**args)
         self._leaveDir()
 
         return results
-    
-    #--------- Functions related to Plotting
-    
+
+    # --------- Functions related to Plotting
+
     def _getVolumeMatrix(self, volName):
         from ResMap_fileIO import MRC_Data
-        
+
         volPath = self._getPath(volName)
         return MRC_Data(volPath, 'ccp4').matrix
-    
+
     def _plotVolumeSlices(self, **kwargs):
         from ResMap_visualization import plotOriginalVolume
         fig = plotOriginalVolume(self._getVolumeMatrix('volume1.map'), **kwargs)
         return Plotter(figure=fig)
-        
+
     def _plotResMapSlices(self, data=None, **kwargs):
         from ResMap_visualization import plotResMapVolume
         plotDict = loads(self.plotData.get())
         if data is None:
             data = self._getVolumeMatrix('volume1_resmap.map')
-            data  = np.ma.masked_where(data > plotDict['currentRes'], data, copy=True)
+            data = np.ma.masked_where(data > plotDict['currentRes'], data,
+                                      copy=True)
         kwargs.update(plotDict)
         fig = plotResMapVolume(data, **kwargs)
         return Plotter(figure=fig)
-             
+
     def _plotHistogram(self):
         from ResMap_visualization import plotResolutionHistogram
         histogramData = loads(self.histogramData.get())
         fig = plotResolutionHistogram(histogramData)
-        return Plotter(figure=fig)    
+        return Plotter(figure=fig)
 
     def _parseOutput(self):
         meanRes, medianRes = 0, 0

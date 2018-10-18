@@ -1,6 +1,6 @@
 # **************************************************************************
 # *
-# * Authors:     J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)
+# * Authors:     Yunior C. Fonseca Reyna (cfonseca@cnb.csic.es)
 # *
 # * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC
 # *
@@ -24,11 +24,4 @@
 # *
 # **************************************************************************
 
-from bibtex import _bibtex # Load bibtex dict with references
-_logo = "resmap_logo.png"
-_references = ['kucukelbir2014']
-
-from protocol_resmap import ProtResMap
-from viewer_resmap import ResMapViewer, ResMapViewerWeb
-from wizard import ResmapPrewhitenWizard
-
+from test_protocols_resmap import TestResMapBase, TestResMap
