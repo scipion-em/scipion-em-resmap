@@ -24,8 +24,6 @@
 # *
 # **************************************************************************
 
-import os
-
 
 # we declarate global constants to multiple usage
 RESMAP_HOME = 'RESMAP_HOME'

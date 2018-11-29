@@ -29,7 +29,7 @@ import sys
 
 from pyworkflow.protocol.params import LabelParam, EnumParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
-from pyworkflow.em.viewer import ImageView, ChimeraView
+from pyworkflow.em.viewers import ImageView, ChimeraView
 from resmap.protocols import ProtResMap
 from resmap.constants import RESMAP_HOME
 from resmap import Plugin
