@@ -34,7 +34,7 @@ from pyworkflow.gui.widgets import LabelSlider, HotButton
 
 from pyworkflow.em.convert import ImageHandler
 from pyworkflow.em.wizard import EmWizard
-from protocol_resmap import ProtResMap
+from resmap.protocols.protocol_resmap import ProtResMap
 from pyworkflow.gui.matplotlib_image import FigureFrame
 
 from resmap import Plugin
@@ -64,7 +64,7 @@ class ResmapPrewhitenWizard(EmWizard):
         else:
             d = PreWhiteningDialog(self.form, os.getcwd())
             if d.resultYes():
-                print "result: ", d.getElbowValue(), d.getRampValue()
+                print("result: ", d.getElbowValue(), d.getRampValue())
                 form.setVar('prewhitenAng', d.getElbowValue())
                 form.setVar('prewhitenRamp', d.getRampValue())
 

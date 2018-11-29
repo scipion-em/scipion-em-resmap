@@ -24,7 +24,9 @@
 # *
 # **************************************************************************
 
-import unittest, sys
+import unittest
+import sys
+import os
 # import numpy as np
 
 from pyworkflow.em import *
@@ -83,7 +85,7 @@ class TestResMap(TestResMapBase):
                                   maxRes=20
                                   )
         self.launchProtocol(resMap)
-        self.assertTrue(exists(resMap._getExtraPath("histogram.png")),
+        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
                         "resmap (no split and no mask) has failed")
 
     def testResmap2(self):
@@ -98,7 +100,7 @@ class TestResMap(TestResMapBase):
                                   maxRes=20
                                   )
         self.launchProtocol(resMap)
-        self.assertTrue(exists(resMap._getExtraPath("histogram.png")),
+        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
                         "resmap (split and no mask) has failed")
 
     def testResmap3(self):
@@ -113,7 +115,7 @@ class TestResMap(TestResMapBase):
                                   maxRes=20
                                   )
         self.launchProtocol(resMap)
-        self.assertTrue(exists(resMap._getExtraPath("histogram.png")),
+        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
                         "resmap (no split and no mask) has failed")
 
     def testResmap4(self):
@@ -130,7 +132,7 @@ class TestResMap(TestResMapBase):
                                   maxRes=20
                                   )
         self.launchProtocol(resMap)
-        self.assertTrue(exists(resMap._getExtraPath("histogram.png")),
+        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
                         "resmap (split and no mask) has failed")
 
 
@@ -142,6 +144,6 @@ if __name__ == "__main__":
             suite = unittest.TestLoader().loadTestsFromTestCase(cls)
             unittest.TextTestRunner(verbosity=2).run(suite)
         else:
-            print "Test: '%s' not found." % className
+            print("Test: '%s' not found." % className)
     else:
         unittest.main()
