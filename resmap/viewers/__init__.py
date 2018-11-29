@@ -24,3 +24,5 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+
+from resmap_viewers import ResMapViewer, ResMapViewerWeb
