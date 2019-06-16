@@ -75,10 +75,15 @@ class ProtResMap(ProtAnalysis3D):
 
     # --------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
-        form.addHidden(params.GPU_LIST, params.StringParam, default='',
+        form.addHidden(params.USE_GPU, params.BooleanParam, default=False,
+                       label="Use GPU?",
+                       help="Set to Yes if you want to run ResMap on GPU.")
+        form.addHidden(params.GPU_LIST, params.StringParam, default='0',
                        label="Choose GPU ID",
-                       help="If no GPU ID is provided, the program "
-                       "will use CPU instead.")
+                       help="GPU may have several cores. Set it to zero"
+                            " if you do not know what we are talking about."
+                            " First core index is 0, second 1 and so on.\n"
+                            "ResMap can use only one GPU.")
         form.addSection(label='Input')
         form.addParam('volumeHalf1', params.PointerParam,
                       label="Volume half 1", important=True,
@@ -183,7 +188,7 @@ class ProtResMap(ProtAnalysis3D):
 
     # --------------------------- UTILS functions -----------------------------
     def _prepareParams(self):
-        args = " --noguiSplit %(half1)s %(half2)s"
+        args = " --noguiSplit %(half1)s %(half2)s --vis2D"
         args += " --vxSize=%0.3f" % self.volumeHalf1.get().getSamplingRate()
         args += " --pVal=%(pVal)f --maxRes=%(maxRes)f --minRes=%(minRes)f"
         args += " --stepRes=%(stepRes)f"
@@ -204,8 +209,8 @@ class ProtResMap(ProtAnalysis3D):
                   'stepRes': self.stepRes.get()
                   }
 
-        if self.getGpuList:
-            args += " --use_gpu=yes --set_gpu=%(GPU)s"
+        if self.useGpu:
+            args += " --use_gpu=yes --set_gpu=%s" % self.gpuList.get()
             args += ' --lib_krnl_gpu="%s"' % resmap.Plugin.getGpuLib()
 
         return args % params
