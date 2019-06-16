@@ -64,6 +64,12 @@ class Plugin(pyworkflow.em.Plugin):
                             os.path.basename(cls.getVar(RESMAP)))
 
     @classmethod
+    def getGpuLib(cls):
+        """ Return CUDA lib linked to binary. """
+        return os.path.join(cls.getHome('bin'),
+                            os.path.basename(cls.getVar(RESMAP_GPU_LIB)))
+
+    @classmethod
     def defineBinaries(cls, env):
         """ Define required binaries in the given Environment. """
 

@@ -25,6 +25,8 @@
 # *
 # **************************************************************************
 
+import os
+
 import pyworkflow.protocol.params as params
 from pyworkflow.em.protocol import ProtAnalysis3D
 from pyworkflow.em.convert import ImageHandler
@@ -219,7 +221,6 @@ class ProtResMap(ProtAnalysis3D):
         args += " --vxSize=%0.3f" % self.volumeHalf1.get().getSamplingRate()
         args += " --pVal=%(pVal)f --maxRes=%(maxRes)f --minRes=%(minRes)f"
         args += " --stepRes=%(stepRes)f"
-        args += " --lib_krnl_gpu=%s" % resmap.Plugin.getVar(RESMAP_GPU_LIB)
 
         if self.applyMask:
             # convert mask to map/ccp4
@@ -227,10 +228,10 @@ class ProtResMap(ProtAnalysis3D):
             ih.convert(self.maskVolume.get().getLocation(),
                        self._getFileName('mask'))
 
-            args += " --maskVol=%s" % self._getFileName('mask')
+            args += " --maskVol=%s" % os.path.basename(self._getFileName('mask'))
 
-        params = {'half1': self._getFileName('half1'),
-                  'half2': self._getFileName('half2'),
+        params = {'half1': os.path.basename(self._getFileName('half1')),
+                  'half2': os.path.basename(self._getFileName('half2')),
                   'pVal': self.pVal.get(),
                   'maxRes': self.maxRes.get(),
                   'minRes': self.minRes.get(),
@@ -239,8 +240,9 @@ class ProtResMap(ProtAnalysis3D):
 
         args = args % params
 
-        if self.GPU_LIST.get() != '':
-            args += "--use_gpu=yes --set_gpu=%%(GPU)s"
+        if len(str(self.getGpuList())) > 1:
+            args += " --use_gpu=yes --set_gpu=%(GPU)s"
+            args += " --lib_krnl_gpu=%s" % resmap.Plugin.getGpuLib()
 
         return args
 
