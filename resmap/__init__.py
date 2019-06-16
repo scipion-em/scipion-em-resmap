@@ -43,18 +43,15 @@ class Plugin(pyworkflow.em.Plugin):
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(RESMAP_HOME, 'resmap-1.95')
-        cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Linux18.04x64')
-        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V9.1.85-sm60_gpu.so')
+        cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Centos7x64')
+        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V8.0.61-sm60_gpu.so')
 
     @classmethod
     def getEnviron(cls):
         """ Setup the environment variables needed to launch resmap. """
         environ = Environ(os.environ)
-        environ.update({
-            'PATH': Plugin.getHome(),
-            #'LD_LIBRARY_PATH': str.join(cls.getHome(), 'resmaplib')
-            #                   + ":" + cls.getHome(),
-        }, position=Environ.BEGIN)
+        environ.update({'PATH': Plugin.getHome()},
+                       position=Environ.BEGIN)
         return environ
 
     @classmethod

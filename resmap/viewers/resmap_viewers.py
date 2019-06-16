@@ -24,31 +24,15 @@
 # *
 # **************************************************************************
 
-import os
-import sys
+from pyworkflow.protocol.params import LabelParam
+from pyworkflow.viewer import ProtocolViewer
+from pyworkflow.em.viewers import ChimeraView
 
-from pyworkflow.protocol.params import LabelParam, EnumParam
-from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER, WEB_DJANGO
-from pyworkflow.em.viewers import ImageView, ChimeraView
 from resmap.protocols import ProtResMap
-from resmap.constants import RESMAP_HOME
-from resmap import Plugin
-
-AX_X = 0
-AX_Y = 1
-AX_Z = 2
 
 
 class ResMapViewer(ProtocolViewer):
-    """
-    Visualization tools for ResMap results.
-
-    ResMap is software tool for computing the local resolution of 3D
-    density maps studied in structural biology, primarily by cryo-electron
-    microscopy (cryo-EM).
-
-    Please find the manual at http://resmap.sourceforge.net
-    """
+    """Visualization tools for ResMap results. """
 
     _environments = [DESKTOP_TKINTER]
     _targets = [ProtResMap]
@@ -56,65 +40,23 @@ class ResMapViewer(ProtocolViewer):
 
     def __init__(self, *args, **kwargs):
         ProtocolViewer.__init__(self, *args, **kwargs)
-        sys.path.append(Plugin.getVar(RESMAP_HOME))
 
     def _defineParams(self, form):
-        form.addSection(label='Visualization')
-        group = form.addGroup('Slices')
-
-        group.addParam('sliceAxis', EnumParam, default=AX_Z,
-                       choices=['x', 'y', 'z'],
-                       display=EnumParam.DISPLAY_HLIST,
-                       label='Slice axis')
-        group.addParam('doShowVolumeSlices', LabelParam,
-                       label="Show volume slices")
-        group.addParam('doShowResMapSlices', LabelParam,
-                       label="Show ResMap slices")
-
-        form.addParam('doShowResHistogram', LabelParam,
-                      label="Show resolution histogram")
+        form.addParam('doShowLogFile', LabelParam,
+                      label="Show log file")
         form.addParam('doShowChimera', LabelParam,
                       label="Show Chimera animation", default=True)
 
     def _getVisualizeDict(self):
-        return {'doShowVolumeSlices': self._showVolumeSlices,
-                'doShowResMapSlices': self._showResMapSlices,
-                'doShowResHistogram': self._plotHistogram,
-                'doShowChimera': self._showChimera,
+        return {
+                'doShowLogFile': self._showLogFile,
+                'doShowChimera': self._showChimera
                 }
 
-    def _getAxis(self):
-        return self.getEnumText('sliceAxis')
-
-    def _showVolumeSlices(self, param=None):
-        return [self.protocol._plotVolumeSlices(dataAxis=self._getAxis())]
-
-    def _showResMapSlices(self, param=None):
-        return [self.protocol._plotResMapSlices(dataAxis=self._getAxis())]
-
-    def _plotHistogram(self, param=None):
-        return [self.protocol._plotHistogram()]
+    def _showLogFile(self, param=None):
+        return [self.textView([self.protocol._getFileName('logFn')], "ResMap log file")]
 
     def _showChimera(self, param=None):
-        # os.system('chimera "%s" &' % self.protocol._getPath('volume1_resmap_chimera.cmd'))
-        cmdFile = self.protocol._getPath('volume1_resmap_chimera.cmd')
+        cmdFile = self.protocol._getFileName('outChimeraCmd')
         view = ChimeraView(cmdFile)
         return [view]
-
-
-class ResMapViewerWeb(ResMapViewer):
-    """
-    Same viewer for ResMap web, but using saved images of the plots.
-    """
-
-    _environments = [WEB_DJANGO]
-
-    def _showVolumeSlices(self, param=None):
-        return [ImageView(self.protocol._getExtraPath('volume1.map.png'))]
-
-    def _showResMapSlices(self, param=None):
-        return [
-            ImageView(self.protocol._getExtraPath('volume1_resmap.map.png'))]
-
-    def _plotHistogram(self, param=None):
-        return [ImageView(self.protocol._getExtraPath('histogram.png'))]
