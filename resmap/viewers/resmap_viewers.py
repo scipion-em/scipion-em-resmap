@@ -52,7 +52,7 @@ class ResMapViewer(ProtocolViewer):
 
     _environments = [DESKTOP_TKINTER]
     _targets = [ProtResMap]
-    _label = 'viewer resmap'
+    _label = 'viewer'
 
     def __init__(self, *args, **kwargs):
         ProtocolViewer.__init__(self, *args, **kwargs)
@@ -118,4 +118,3 @@ class ResMapViewerWeb(ResMapViewer):
 
     def _plotHistogram(self, param=None):
         return [ImageView(self.protocol._getExtraPath('histogram.png'))]
-

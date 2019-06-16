@@ -24,8 +24,6 @@
 # *
 # **************************************************************************
 
-import unittest
-import sys
 import os
 # import numpy as np
 
@@ -134,16 +132,3 @@ class TestResMap(TestResMapBase):
         self.launchProtocol(resMap)
         self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
                         "resmap (split and no mask) has failed")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        className = sys.argv[1]
-        cls = globals().get(className, None)
-        if cls:
-            suite = unittest.TestLoader().loadTestsFromTestCase(cls)
-            unittest.TextTestRunner(verbosity=2).run(suite)
-        else:
-            print("Test: '%s' not found." % className)
-    else:
-        unittest.main()

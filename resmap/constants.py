@@ -24,9 +24,6 @@
 # *
 # **************************************************************************
 
-
-# we declarate global constants to multiple usage
+RESMAP = 'RESMAP'
 RESMAP_HOME = 'RESMAP_HOME'
-
-# Supported versions
-V1_1_5s2 = '1.1.5-s2'
+RESMAP_GPU_LIB = 'RESMAP_GPU_LIB'

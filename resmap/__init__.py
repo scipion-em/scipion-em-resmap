@@ -29,8 +29,7 @@ import os
 import pyworkflow.em
 from pyworkflow.utils import Environ
 
-from resmap.constants import RESMAP_HOME, V1_1_5s2
-from resmap.bibtex import _bibtex # Load bibtex dict with references
+from resmap.constants import *
 
 
 _logo = "resmap_logo.png"
@@ -43,7 +42,9 @@ class Plugin(pyworkflow.em.Plugin):
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(RESMAP_HOME, 'resmap-1.1.5-s2')
+        cls._defineEmVar(RESMAP_HOME, 'resmap-1.95')
+        cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Linux18.04x64')
+        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V9.1.85-sm60_gpu.so')
 
     @classmethod
     def getEnviron(cls):
@@ -51,22 +52,24 @@ class Plugin(pyworkflow.em.Plugin):
         environ = Environ(os.environ)
         environ.update({
             'PATH': Plugin.getHome(),
-            'LD_LIBRARY_PATH': str.join(cls.getHome(), 'resmaplib')
-                           + ":" + cls.getHome(),
+            #'LD_LIBRARY_PATH': str.join(cls.getHome(), 'resmaplib')
+            #                   + ":" + cls.getHome(),
         }, position=Environ.BEGIN)
         return environ
 
     @classmethod
-    def isVersionActive(cls):
-        return cls.getActiveVersion().startswith(V1_1_5s2)
+    def getProgram(cls):
+        """ Return the program binary that will be used. """
+        return os.path.join(cls.getHome('bin'),
+                            os.path.basename(cls.getVar(RESMAP)))
 
     @classmethod
     def defineBinaries(cls, env):
         """ Define required binaries in the given Environment. """
 
-        env.addPackage('resmap', version=V1_1_5s2,
-                       tar='resmap-1.1.5-s2.tgz',
-                       deps=['scipy'],
+        env.addPackage('resmap', version='1.95',
+                       tar='resmap-1.95.tgz',
+                       deps=['scipy', 'numpy', 'matplotlib'],
                        default=True)
 
 

@@ -24,4 +24,4 @@
 # *
 # **************************************************************************
 
-from test_protocols_resmap import TestResMapBase, TestResMap
+#from test_protocols_resmap import TestResMapBase, TestResMap
