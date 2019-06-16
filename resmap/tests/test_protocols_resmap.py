@@ -76,12 +76,11 @@ class TestResMap(TestResMapBase):
                                   volumeHalf2=self.protImportHalf2.outputVolume,
                                   stepRes=0.5,
                                   minRes=7.5,
-                                  maxRes=20
-                                  )
+                                  maxRes=20)
         resMap._createFilenameTemplates()
+        output = resMap._getFileName("outResmapVol")
         self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getFileName("outResmapVol")),
-                        "resmap has failed")
+        self.assertIsNotNone(output, "Resmap has failed")
 
 
     def testResmap2(self):
@@ -92,9 +91,8 @@ class TestResMap(TestResMapBase):
                                   maskVolume=self.protImportMask.outputMask,
                                   stepRes=0.5,
                                   minRes=7.5,
-                                  maxRes=20
-                                  )
+                                  maxRes=20)
         resMap._createFilenameTemplates()
+        output = resMap._getFileName("outResmapVol")
         self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getFileName("outResmapVol")),
-                        "resmap (with mask) has failed")
+        self.assertIsNotNone(output, "Resmap (with mask) has failed")

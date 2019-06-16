@@ -26,6 +26,7 @@
 # **************************************************************************
 
 import os
+import re
 
 import pyworkflow.protocol.params as params
 from pyworkflow.em.protocol import ProtAnalysis3D
@@ -93,7 +94,6 @@ class ProtResMap(ProtAnalysis3D):
                       pointerClass='Volume',
                       label="Volume half 2", important=True,
                       help=self.INPUT_HELP)
-
         form.addParam('applyMask', params.BooleanParam, default=False,
                       label="Mask input volume?",
                       help="It is not necessary to provide ResMap with a mask "
@@ -164,6 +164,7 @@ class ProtResMap(ProtAnalysis3D):
     def _summary(self):
         summary = []
 
+        self._createFilenameTemplates()
         if exists(self._getFileName('outResmapVol')):
             results = self._parseOutput()
             summary.append('Mean resolution: %0.2f A' % results[0])
@@ -217,12 +218,13 @@ class ProtResMap(ProtAnalysis3D):
 
     def _parseOutput(self):
         meanRes, medianRes = 0, 0
+        ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
         f = open(self._getFileName('logFn'), 'r')
         for line in f.readlines():
             if 'MEAN RESOLUTION in MASK' in line:
-                meanRes = line.strip().split('=')[1]
+                meanRes = ansi_escape.sub('', line.strip().split('=')[1])
             elif 'MEDIAN RESOLUTION in MASK' in line:
-                medianRes = line.strip().split('=')[1]
+                medianRes = ansi_escape.sub('', line.strip().split('=')[1])
         f.close()
 
         return tuple(map(float, (meanRes, medianRes)))
