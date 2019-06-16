@@ -109,6 +109,10 @@ class ProtResMap(ProtAnalysis3D):
         form.addParam('maskVolume', params.PointerParam, label="Mask volume",
                       pointerClass='VolumeMask', condition="applyMask",
                       help='Select a volume to apply as a mask.')
+        form.addParam('show2D', params.BooleanParam, default=True,
+                      expertLevel=params.LEVEL_ADVANCED,
+                      label="Visualize 2D results?",
+                      help="By default ResMap will display 2D results.")
 
         group = form.addGroup('Extra parameters')
         group.addParam('stepRes', params.FloatParam, default=1,
@@ -189,10 +193,13 @@ class ProtResMap(ProtAnalysis3D):
 
     # --------------------------- UTILS functions -----------------------------
     def _prepareParams(self):
-        args = " --noguiSplit %(half1)s %(half2)s --vis2D"
+        args = " --noguiSplit %(half1)s %(half2)s"
         args += " --vxSize=%0.3f" % self.volumeHalf1.get().getSamplingRate()
         args += " --pVal=%(pVal)f --maxRes=%(maxRes)f --minRes=%(minRes)f"
         args += " --stepRes=%(stepRes)f"
+
+        if self.show2D:
+            args += " --vis2D"
 
         if self.applyMask:
             # convert mask to map/ccp4

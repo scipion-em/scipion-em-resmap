@@ -79,6 +79,7 @@ class TestResMap(TestResMapBase):
                                   maxRes=20)
         resMap._createFilenameTemplates()
         output = resMap._getFileName("outResmapVol")
+        resMap.show2D.set(False)
         self.launchProtocol(resMap)
         self.assertIsNotNone(output, "Resmap has failed")
 
@@ -94,5 +95,6 @@ class TestResMap(TestResMapBase):
                                   maxRes=20)
         resMap._createFilenameTemplates()
         output = resMap._getFileName("outResmapVol")
+        resMap.show2D.set(False)
         self.launchProtocol(resMap)
         self.assertIsNotNone(output, "Resmap (with mask) has failed")

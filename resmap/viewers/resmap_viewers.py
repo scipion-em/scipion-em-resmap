@@ -25,7 +25,7 @@
 # **************************************************************************
 
 from pyworkflow.protocol.params import LabelParam
-from pyworkflow.viewer import ProtocolViewer
+from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
 from pyworkflow.em.viewers import ChimeraView
 
 from resmap.protocols import ProtResMap
@@ -42,19 +42,22 @@ class ResMapViewer(ProtocolViewer):
         ProtocolViewer.__init__(self, *args, **kwargs)
 
     def _defineParams(self, form):
+        form.addSection(label='Visualization')
         form.addParam('doShowLogFile', LabelParam,
                       label="Show log file")
         form.addParam('doShowChimera', LabelParam,
-                      label="Show Chimera animation", default=True)
+                      label="Show Chimera animation")
 
     def _getVisualizeDict(self):
+        self.protocol._createFilenameTemplates()
         return {
                 'doShowLogFile': self._showLogFile,
                 'doShowChimera': self._showChimera
                 }
 
     def _showLogFile(self, param=None):
-        return [self.textView([self.protocol._getFileName('logFn')], "ResMap log file")]
+        return [self.textView([self.protocol._getFileName('logFn')],
+                              "ResMap log file")]
 
     def _showChimera(self, param=None):
         cmdFile = self.protocol._getFileName('outChimeraCmd')
