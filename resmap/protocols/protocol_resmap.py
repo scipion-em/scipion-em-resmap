@@ -78,7 +78,19 @@ class ProtResMap(ProtAnalysis3D):
     def _defineParams(self, form):
         form.addHidden(params.USE_GPU, params.BooleanParam, default=False,
                        label="Use GPU?",
-                       help="Set to Yes if you want to run ResMap on GPU.")
+                       help="Set to Yes if you want to run ResMap on GPU.\n\n"
+                            "GPU calculation should not be enabled if your "
+                            "maps are smaller than 140x140x140, or if "
+                            "your maps are larger than 700x700x700. "
+                            "If your maps have a size between 140x140x140 "
+                            "and 700x700x700, you may enable GPU usage. "
+                            "For maps smaller than 140x140x140, the CPU "
+                            "calculation is likely to be just as fast "
+                            "as the GPU (hence GPU need not be used). "
+                            "For maps larger than 700x700x700, the GPU "
+                            "is likely not to have sufficient memory "
+                            "for the calculation (this upper limit holds "
+                            "for GTX 1080 Ti GPUs.")
         form.addHidden(params.GPU_LIST, params.StringParam, default='0',
                        label="Choose GPU ID",
                        help="GPU may have several cores. Set it to zero"
