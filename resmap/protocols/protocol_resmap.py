@@ -78,8 +78,13 @@ class ProtResMap(ProtAnalysis3D):
     # --------------------------- DEFINE param functions ----------------------
     def _defineParams(self, form):
         form.addHidden(params.USE_GPU, params.BooleanParam, default=False,
-                       label="Use GPU?",
-                       help="Set to Yes if you want to run ResMap on GPU.\n\n"
+                       label="Use GPU?")
+        form.addHidden(params.GPU_LIST, params.StringParam, default='0',
+                       label="Choose GPU ID",
+                       help="GPU may have several cores. Set it to zero"
+                            " if you do not know what we are talking about."
+                            " First core index is 0, second 1 and so on.\n\n"
+                            "ResMap can use only one GPU.\n\n"
                             "GPU calculation should not be enabled if your "
                             "maps are smaller than 140x140x140, or if "
                             "your maps are larger than 700x700x700. "
@@ -92,12 +97,6 @@ class ProtResMap(ProtAnalysis3D):
                             "is likely not to have sufficient memory "
                             "for the calculation (this upper limit holds "
                             "for GTX 1080 Ti GPUs.")
-        form.addHidden(params.GPU_LIST, params.StringParam, default='0',
-                       label="Choose GPU ID",
-                       help="GPU may have several cores. Set it to zero"
-                            " if you do not know what we are talking about."
-                            " First core index is 0, second 1 and so on.\n"
-                            "ResMap can use only one GPU.")
         form.addSection(label='Input')
         form.addParam('volumeHalf1', params.PointerParam,
                       label="Volume half 1", important=True,
