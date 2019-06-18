@@ -149,6 +149,7 @@ class ProtResMap(ProtAnalysis3D):
                             "0.05 although you are welcome to reduce it (e.g. 0.01) "
                             "if you would like to obtain a more conservative result. "
                             "Empirically, ResMap results are not much affected by the p-value.")
+        form.addHidden('doBenchmarking', params.BooleanParam, default=False)
 
     # --------------------------- INSERT steps functions ----------------------
     def _insertAllSteps(self):
@@ -233,6 +234,9 @@ class ProtResMap(ProtAnalysis3D):
         if self.useGpu:
             args += " --use_gpu=yes --set_gpu=%s" % self.gpuList.get()
             args += ' --lib_krnl_gpu="%s"' % resmap.Plugin.getGpuLib()
+
+        if self.doBenchmarking:
+            args += ' --doBenchMarking'
 
         return args % params
 
