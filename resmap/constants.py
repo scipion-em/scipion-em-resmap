@@ -27,3 +27,5 @@
 RESMAP = 'RESMAP'
 RESMAP_HOME = 'RESMAP_HOME'
 RESMAP_GPU_LIB = 'RESMAP_GPU_LIB'
+
+CHIMERA_CMD = 'volume1_ori_resmap_chimera.cmd'

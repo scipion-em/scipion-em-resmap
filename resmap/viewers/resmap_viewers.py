@@ -28,6 +28,7 @@ from pyworkflow.protocol.params import LabelParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
 from pyworkflow.em.viewers import ChimeraView
 
+from resmap import CHIMERA_CMD
 from resmap.protocols import ProtResMap
 
 
@@ -60,6 +61,6 @@ class ResMapViewer(ProtocolViewer):
                               "ResMap log file")]
 
     def _showChimera(self, param=None):
-        cmdFile = self.protocol._getFileName('outChimeraCmd')
-        view = ChimeraView(cmdFile)
+
+        view = ChimeraView(CHIMERA_CMD, cwd=self.protocol._getExtraPath())
         return [view]
