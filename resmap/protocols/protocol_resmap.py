@@ -69,7 +69,7 @@ class ProtResMap(ProtAnalysis3D):
             'half2': self._getExtraPath('volume2.map'),
             'mask': self._getExtraPath('mask.map'),
             'outVol': self._getExtraPath('volume1_ori.map'),
-            'outResmapVol': self._getExtraPath('volume1_ori_resmap.map'),
+            RESMAP_VOL: self._getExtraPath('volume1_ori_resmap.map'),
             'outChimeraCmd': self._getExtraPath(CHIMERA_CMD),
             'logFn': self._getExtraPath('ResMaps.log')
         }
