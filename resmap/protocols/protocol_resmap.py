@@ -37,6 +37,7 @@ import resmap
 from resmap.constants import *
 
 
+
 class ProtResMap(ProtAnalysis3D):
     """
     ResMap is software tool for computing the local resolution of 3D
@@ -68,8 +69,8 @@ class ProtResMap(ProtAnalysis3D):
             'half2': self._getExtraPath('volume2.map'),
             'mask': self._getExtraPath('mask.map'),
             'outVol': self._getExtraPath('volume1_ori.map'),
-            'outResmapVol': self._getExtraPath('volume1_ori_resmap.map'),
-            'outChimeraCmd': self._getExtraPath('volume1_ori_resmap.cmd'),
+            RESMAP_VOL: self._getExtraPath('volume1_ori_resmap.map'),
+            'outChimeraCmd': self._getExtraPath(CHIMERA_CMD),
             'logFn': self._getExtraPath('ResMaps.log')
         }
         self._updateFilenamesDict(myDict)
