@@ -29,6 +29,7 @@ import os
 import re
 
 import pyworkflow.protocol.params as params
+from pyworkflow.em.data import Volume
 from pyworkflow.em.protocol import ProtAnalysis3D
 from pyworkflow.em.convert import ImageHandler
 from pyworkflow.utils import exists
@@ -175,7 +176,13 @@ class ProtResMap(ProtAnalysis3D):
                     numberOfThreads=1)
 
     def createOutputStep(self):
-        pass
+        outputVolumeResmap = Volume()
+        outputVolumeResmap.setSamplingRate(self.volumeHalf1.get().getSamplingRate())
+        outputVolumeResmap.setFileName(self._getFileName(RESMAP_VOL))
+
+        self._defineOutputs(outputVolume=outputVolumeResmap)
+        self._defineTransformRelation(self.volumeHalf1, outputVolumeResmap)
+        self._defineTransformRelation(self.volumeHalf2, outputVolumeResmap)
 
     # --------------------------- INFO functions ------------------------------
     def _summary(self):
