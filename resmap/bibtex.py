@@ -25,10 +25,6 @@
 # *
 # **************************************************************************
 """
-Bibtex string file for Xmipp package.
-"""
-
-_bibtexStr = """
 
 @article{kucukelbir2014,
   title={Quantifying the local resolution of cryo-EM density maps},
@@ -42,11 +38,4 @@ _bibtexStr = """
   doi = {http://dx.doi.org/10.1038/nmeth.2727}
 }
 
-
 """
-
-
-
-from pyworkflow.utils import parseBibTex
-
-_bibtex = parseBibTex(_bibtexStr)  
