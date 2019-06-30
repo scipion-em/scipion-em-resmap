@@ -34,7 +34,7 @@ b) Developer's version
         scipion installp -p path_to_scipion-em-resmap --devel
 
 ResMap binaries will be installed automatically with the plugin, but you can also link an existing installation.
-Default installation path assumed is ``software/em/resmap-1.95``, if you want to change it, set *RESMAP_HOME* in ``scipion.conf`` file pointing to the folder where the ResMap is installed.
+Default installation path assumed is ``software/em/resmap-1.95``, if you want to change it, set *RESMAP_HOME* in ``scipion.conf`` file pointing to the folder where the ResMap is installed. ResMap binary (default ResMap-1.95-cuda-Centos7x64) and CUDA lib module (default ResMap_krnl-cuda-V8.0.61-sm60_gpu.so) can be set by *RESMAP* and *RESMAP_GPU_LIB* vars, respectively.
 
 To check the installation, simply run the following Scipion test: ``scipion test resmap.tests.test_protocols_resmap.TestResMap``
 
