@@ -24,10 +24,7 @@
 # *
 # **************************************************************************
 
-import unittest
-import sys
 import os
-# import numpy as np
 
 from pyworkflow.em import *
 from pyworkflow.tests import BaseTest, DataSet, setupTestProject
@@ -39,7 +36,6 @@ class TestResMapBase(BaseTest):
     @classmethod
     def setData(cls, dataProject='resmap'):
         cls.dataset = DataSet.getDataSet(dataProject)
-        cls.map3D = cls.dataset.getFile('betagal')
         cls.half1 = cls.dataset.getFile('betagal_half1')
         cls.half2 = cls.dataset.getFile('betagal_half2')
         cls.mask = cls.dataset.getFile('betagal_mask')
@@ -70,80 +66,37 @@ class TestResMap(TestResMapBase):
     def setUpClass(cls):
         setupTestProject(cls)
         TestResMapBase.setData()
-        cls.protImportVol = cls.runImportVolumes(cls.map3D, 3.54)
         cls.protImportHalf1 = cls.runImportVolumes(cls.half1, 3.54)
         cls.protImportHalf2 = cls.runImportVolumes(cls.half2, 3.54)
         cls.protImportMask = cls.runImportMask(cls.mask, 3.54)
 
     def testResmap1(self):
         resMap = self.newProtocol(ProtResMap,
-                                  inputVolume=self.protImportVol.outputVolume,
-                                  prewhitenAng=23.77,
-                                  prewhitenRamp=1,
+                                  volumeHalf1=self.protImportHalf1.outputVolume,
+                                  volumeHalf2=self.protImportHalf2.outputVolume,
                                   stepRes=0.5,
                                   minRes=7.5,
-                                  maxRes=20
-                                  )
+                                  maxRes=20)
+        resMap._createFilenameTemplates()
+        output = resMap._getFileName("outResmapVol")
+        resMap.show2D.set(False)
+        resMap.doBenchmarking.set(True)
         self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
-                        "resmap (no split and no mask) has failed")
+        self.assertIsNotNone(output, "Resmap has failed")
+
 
     def testResmap2(self):
         resMap = self.newProtocol(ProtResMap,
-                                  useSplitVolume=True,
-                                  volumeHalf1=self.protImportHalf1.outputVolume,
-                                  volumeHalf2=self.protImportHalf2.outputVolume,
-                                  prewhitenAng=23.77,
-                                  prewhitenRamp=1,
-                                  stepRes=0.5,
-                                  minRes=7.5,
-                                  maxRes=20
-                                  )
-        self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
-                        "resmap (split and no mask) has failed")
-
-    def testResmap3(self):
-        resMap = self.newProtocol(ProtResMap,
-                                  inputVolume=self.protImportVol.outputVolume,
-                                  applyMask=True,
-                                  maskVolume=self.protImportMask.outputMask,
-                                  prewhitenAng=23.77,
-                                  prewhitenRamp=1,
-                                  stepRes=0.5,
-                                  minRes=7.5,
-                                  maxRes=20
-                                  )
-        self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
-                        "resmap (no split and no mask) has failed")
-
-    def testResmap4(self):
-        resMap = self.newProtocol(ProtResMap,
-                                  useSplitVolume=True,
                                   volumeHalf1=self.protImportHalf1.outputVolume,
                                   volumeHalf2=self.protImportHalf2.outputVolume,
                                   applyMask=True,
                                   maskVolume=self.protImportMask.outputMask,
-                                  prewhitenAng=23.77,
-                                  prewhitenRamp=1,
                                   stepRes=0.5,
                                   minRes=7.5,
-                                  maxRes=20
-                                  )
+                                  maxRes=20)
+        resMap._createFilenameTemplates()
+        output = resMap._getFileName("outResmapVol")
+        resMap.show2D.set(False)
+        resMap.doBenchmarking.set(True)
         self.launchProtocol(resMap)
-        self.assertTrue(os.path.exists(resMap._getExtraPath("histogram.png")),
-                        "resmap (split and no mask) has failed")
-
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        className = sys.argv[1]
-        cls = globals().get(className, None)
-        if cls:
-            suite = unittest.TestLoader().loadTestsFromTestCase(cls)
-            unittest.TextTestRunner(verbosity=2).run(suite)
-        else:
-            print("Test: '%s' not found." % className)
-    else:
-        unittest.main()
+        self.assertIsNotNone(output, "Resmap (with mask) has failed")
