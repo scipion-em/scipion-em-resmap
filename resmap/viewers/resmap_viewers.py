@@ -28,13 +28,13 @@ import os
 import numpy as np
 from matplotlib import cm
 
-from pyworkflow.em import COLOR_CHOICES, COLOR_JET, StringParam, COLOR_OTHER, \
-    AX_Z, LEVEL_ADVANCED, IntParam, ImageHandler
-from pyworkflow.protocol.params import LabelParam, EnumParam
-from pyworkflow.utils import removeExt, getExt
+from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
+from pwem.convert import ImageHandler
+from pyworkflow.protocol.params import LabelParam, EnumParam, StringParam, \
+    LEVEL_ADVANCED, IntParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
-from pyworkflow.em.viewers import ChimeraView, LocalResolutionViewer, DataView, \
-    EmPlotter
+from pwem.viewers import (ChimeraView, LocalResolutionViewer, DataView,
+                          EmPlotter)
 
 from resmap import CHIMERA_CMD, RESMAP_VOL
 from resmap.protocols import ProtResMap
@@ -150,7 +150,7 @@ class ResMapViewer(LocalResolutionViewer):
                                                     % self._getAxis())
         # The slices to be shown are close to the center. Volume size is divided
         # in segments, the fourth central ones are selected i.e. 3,4,5,6
-        for i in xrange(3, 7):
+        for i in list(range(3, 7)):
             sliceNumber = self.getSlice(i, imgData)
             a = xplotter.createSubPlot("Slice %s" % (sliceNumber + 1), '', '')
             matrix = self.getSliceImage(imgData, sliceNumber, self._getAxis())

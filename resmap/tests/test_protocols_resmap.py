@@ -24,12 +24,9 @@
 # *
 # **************************************************************************
 
-import os
-
-from pyworkflow.em import *
 from pyworkflow.tests import BaseTest, DataSet, setupTestProject
 from resmap.protocols import ProtResMap
-from pyworkflow.em.protocol import ProtImportVolumes, ProtImportMask
+from pwem.protocols import ProtImportVolumes, ProtImportMask
 
 
 class TestResMapBase(BaseTest):

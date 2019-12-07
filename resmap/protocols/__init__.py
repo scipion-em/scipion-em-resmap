@@ -24,4 +24,4 @@
 # *
 # **************************************************************************
 
-from protocol_resmap import ProtResMap
+from .protocol_resmap import ProtResMap

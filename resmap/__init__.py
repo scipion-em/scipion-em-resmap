@@ -26,7 +26,7 @@
 # **************************************************************************
 
 import os
-import pyworkflow.em
+import pwem
 from pyworkflow.utils import Environ
 
 from resmap.constants import *
@@ -36,7 +36,7 @@ _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
 
-class Plugin(pyworkflow.em.Plugin):
+class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
 
@@ -76,4 +76,4 @@ class Plugin(pyworkflow.em.Plugin):
                        default=True)
 
 
-pyworkflow.em.Domain.registerPlugin(__name__)
+pwem.Domain.registerPlugin(__name__)

@@ -1,3 +1,4 @@
+08-december-2019 Migrated to python3
 1.0.5 - add Resmap 1.95 support
 2-April-2019 - Modify the README file
 1-March-2019 - Include protocol.conf to create the source distribution

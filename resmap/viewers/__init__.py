@@ -25,4 +25,4 @@
 # *
 # **************************************************************************
 
-from resmap_viewers import ResMapViewer
+from .resmap_viewers import ResMapViewer
