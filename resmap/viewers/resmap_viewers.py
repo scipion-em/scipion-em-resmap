@@ -56,7 +56,7 @@ class ResMapViewer(LocalResolutionViewer):
         return plt.colormaps()
 
     def __init__(self, *args, **kwargs):
-        ProtocolViewer.__init__(self, *args, **kwargs)
+        ProtocolViewer.__init__(self, **kwargs)
 
     def _defineParams(self, form):
         form.addSection(label='Visualization')
