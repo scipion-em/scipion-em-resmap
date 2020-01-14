@@ -75,5 +75,3 @@ class Plugin(pwem.Plugin):
                        deps=['scipy', 'numpy', 'matplotlib'],
                        default=True)
 
-
-pwem.Domain.registerPlugin(__name__)
