@@ -56,7 +56,7 @@ class ResMapViewer(LocalResolutionViewer):
         return plt.colormaps()
 
     def __init__(self, *args, **kwargs):
-        ProtocolViewer.__init__(self, *args, **kwargs)
+        ProtocolViewer.__init__(self, **kwargs)
 
     def _defineParams(self, form):
         form.addSection(label='Visualization')
@@ -227,7 +227,7 @@ class ResMapViewer(LocalResolutionViewer):
         return [view]
 
     def getColorMap(self):
-        if (COLOR_CHOICES[self.colorMap.get()] is 'other'):
+        if COLOR_CHOICES[self.colorMap.get()] == 'other':
             cmap = cm.get_cmap(self.otherColorMap.get())
         else:
             cmap = cm.get_cmap(COLOR_CHOICES[self.colorMap.get()])
