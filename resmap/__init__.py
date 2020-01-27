@@ -72,6 +72,5 @@ class Plugin(pwem.Plugin):
 
         env.addPackage('resmap', version='1.95',
                        tar='resmap-1.95.tgz',
-                       deps=['scipy', 'numpy', 'matplotlib'],
                        default=True)
 
