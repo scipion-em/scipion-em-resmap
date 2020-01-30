@@ -31,7 +31,7 @@ import re
 import pyworkflow.protocol.params as params
 from pwem.objects import Volume
 from pwem.protocols import ProtAnalysis3D
-from pwem.convert import ImageHandler
+from pwem.emlib.image import ImageHandler
 from pyworkflow.utils import exists
 
 import resmap

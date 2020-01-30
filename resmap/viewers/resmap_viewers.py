@@ -29,7 +29,7 @@ import numpy as np
 from matplotlib import cm
 
 from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
-from pwem.convert import ImageHandler
+from pwem.emlib.image import ImageHandler
 from pyworkflow.protocol.params import LabelParam, EnumParam, StringParam, \
     LEVEL_ADVANCED, IntParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
