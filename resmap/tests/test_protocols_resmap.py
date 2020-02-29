@@ -25,8 +25,10 @@
 # **************************************************************************
 
 from pyworkflow.tests import BaseTest, DataSet, setupTestProject
-from resmap.protocols import ProtResMap
+from pyworkflow.utils import magentaStr
 from pwem.protocols import ProtImportVolumes, ProtImportMask
+
+from resmap.protocols import ProtResMap
 
 
 class TestResMapBase(BaseTest):
@@ -40,6 +42,7 @@ class TestResMapBase(BaseTest):
     @classmethod
     def runImportVolumes(cls, pattern, samplingRate):
         """ Run an Import volumes protocol. """
+        print(magentaStr("\n==> Importing data - volumes:"))
         cls.protImport = cls.newProtocol(ProtImportVolumes,
                                          filesPath=pattern,
                                          samplingRate=samplingRate
@@ -50,6 +53,7 @@ class TestResMapBase(BaseTest):
     @classmethod
     def runImportMask(cls, pattern, samplingRate):
         """ Run an Import volumes protocol. """
+        print(magentaStr("\n==> Importing data - mask:"))
         cls.protImport = cls.newProtocol(ProtImportMask,
                                          maskPath=pattern,
                                          samplingRate=samplingRate
@@ -68,6 +72,7 @@ class TestResMap(TestResMapBase):
         cls.protImportMask = cls.runImportMask(cls.mask, 3.54)
 
     def testResmap1(self):
+        print(magentaStr("\n==> Testing resmap - no mask:"))
         resMap = self.newProtocol(ProtResMap,
                                   volumeHalf1=self.protImportHalf1.outputVolume,
                                   volumeHalf2=self.protImportHalf2.outputVolume,
@@ -81,8 +86,8 @@ class TestResMap(TestResMapBase):
         self.launchProtocol(resMap)
         self.assertIsNotNone(output, "Resmap has failed")
 
-
     def testResmap2(self):
+        print(magentaStr("\n==> Testing resmap - with mask:"))
         resMap = self.newProtocol(ProtResMap,
                                   volumeHalf1=self.protImportHalf1.outputVolume,
                                   volumeHalf2=self.protImportHalf2.outputVolume,
