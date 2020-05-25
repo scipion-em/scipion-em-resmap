@@ -7,7 +7,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -29,9 +29,9 @@ import os
 import re
 
 import pyworkflow.protocol.params as params
-from pyworkflow.em.data import Volume
-from pyworkflow.em.protocol import ProtAnalysis3D
-from pyworkflow.em.convert import ImageHandler
+from pwem.objects import Volume
+from pwem.protocols import ProtAnalysis3D
+from pwem.emlib.image import ImageHandler
 from pyworkflow.utils import exists
 
 import resmap

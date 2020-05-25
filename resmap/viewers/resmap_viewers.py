@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -23,18 +23,15 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-from os.path import abspath
-import os
-import numpy as np
 from matplotlib import cm
 
-from pyworkflow.em import COLOR_CHOICES, COLOR_JET, StringParam, COLOR_OTHER, \
-    AX_Z, LEVEL_ADVANCED, IntParam, ImageHandler
-from pyworkflow.protocol.params import LabelParam, EnumParam
-from pyworkflow.utils import removeExt, getExt
+from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
+from pwem.emlib.image import ImageHandler
+from pyworkflow.protocol.params import LabelParam, EnumParam, StringParam, \
+    LEVEL_ADVANCED, IntParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
-from pyworkflow.em.viewers import ChimeraView, LocalResolutionViewer, DataView, \
-    EmPlotter
+from pwem.viewers import (ChimeraView, LocalResolutionViewer, DataView,
+                          EmPlotter)
 
 from resmap import CHIMERA_CMD, RESMAP_VOL
 from resmap.protocols import ProtResMap
@@ -56,7 +53,7 @@ class ResMapViewer(LocalResolutionViewer):
         return plt.colormaps()
 
     def __init__(self, *args, **kwargs):
-        ProtocolViewer.__init__(self, *args, **kwargs)
+        ProtocolViewer.__init__(self, **kwargs)
 
     def _defineParams(self, form):
         form.addSection(label='Visualization')
@@ -150,7 +147,7 @@ class ResMapViewer(LocalResolutionViewer):
                                                     % self._getAxis())
         # The slices to be shown are close to the center. Volume size is divided
         # in segments, the fourth central ones are selected i.e. 3,4,5,6
-        for i in xrange(3, 7):
+        for i in list(range(3, 7)):
             sliceNumber = self.getSlice(i, imgData)
             a = xplotter.createSubPlot("Slice %s" % (sliceNumber + 1), '', '')
             matrix = self.getSliceImage(imgData, sliceNumber, self._getAxis())
@@ -227,7 +224,7 @@ class ResMapViewer(LocalResolutionViewer):
         return [view]
 
     def getColorMap(self):
-        if (COLOR_CHOICES[self.colorMap.get()] is 'other'):
+        if COLOR_CHOICES[self.colorMap.get()] == 'other':
             cmap = cm.get_cmap(self.otherColorMap.get())
         else:
             cmap = cm.get_cmap(COLOR_CHOICES[self.colorMap.get()])
