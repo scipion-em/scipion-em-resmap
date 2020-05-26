@@ -7,7 +7,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -26,7 +26,7 @@
 # **************************************************************************
 
 import os
-import pyworkflow.em
+import pwem
 from pyworkflow.utils import Environ
 
 from resmap.constants import *
@@ -36,7 +36,7 @@ _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
 
-class Plugin(pyworkflow.em.Plugin):
+class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
 
@@ -72,8 +72,4 @@ class Plugin(pyworkflow.em.Plugin):
 
         env.addPackage('resmap', version='1.95',
                        tar='resmap-1.95.tgz',
-                       deps=['scipy', 'numpy', 'matplotlib'],
                        default=True)
-
-
-pyworkflow.em.Domain.registerPlugin(__name__)

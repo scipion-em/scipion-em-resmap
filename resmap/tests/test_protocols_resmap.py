@@ -6,7 +6,7 @@
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
-# * the Free Software Foundation; either version 2 of the License, or
+# * the Free Software Foundation; either version 3 of the License, or
 # * (at your option) any later version.
 # *
 # * This program is distributed in the hope that it will be useful,
@@ -24,12 +24,11 @@
 # *
 # **************************************************************************
 
-import os
-
-from pyworkflow.em import *
 from pyworkflow.tests import BaseTest, DataSet, setupTestProject
+from pyworkflow.utils import magentaStr
+from pwem.protocols import ProtImportVolumes, ProtImportMask
+
 from resmap.protocols import ProtResMap
-from pyworkflow.em.protocol import ProtImportVolumes, ProtImportMask
 
 
 class TestResMapBase(BaseTest):
@@ -43,6 +42,7 @@ class TestResMapBase(BaseTest):
     @classmethod
     def runImportVolumes(cls, pattern, samplingRate):
         """ Run an Import volumes protocol. """
+        print(magentaStr("\n==> Importing data - volumes:"))
         cls.protImport = cls.newProtocol(ProtImportVolumes,
                                          filesPath=pattern,
                                          samplingRate=samplingRate
@@ -53,6 +53,7 @@ class TestResMapBase(BaseTest):
     @classmethod
     def runImportMask(cls, pattern, samplingRate):
         """ Run an Import volumes protocol. """
+        print(magentaStr("\n==> Importing data - mask:"))
         cls.protImport = cls.newProtocol(ProtImportMask,
                                          maskPath=pattern,
                                          samplingRate=samplingRate
@@ -71,6 +72,7 @@ class TestResMap(TestResMapBase):
         cls.protImportMask = cls.runImportMask(cls.mask, 3.54)
 
     def testResmap1(self):
+        print(magentaStr("\n==> Testing resmap - no mask:"))
         resMap = self.newProtocol(ProtResMap,
                                   volumeHalf1=self.protImportHalf1.outputVolume,
                                   volumeHalf2=self.protImportHalf2.outputVolume,
@@ -84,8 +86,8 @@ class TestResMap(TestResMapBase):
         self.launchProtocol(resMap)
         self.assertIsNotNone(output, "Resmap has failed")
 
-
     def testResmap2(self):
+        print(magentaStr("\n==> Testing resmap - with mask:"))
         resMap = self.newProtocol(ProtResMap,
                                   volumeHalf1=self.protImportHalf1.outputVolume,
                                   volumeHalf2=self.protImportHalf2.outputVolume,
