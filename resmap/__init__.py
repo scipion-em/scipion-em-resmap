@@ -31,7 +31,7 @@ from pyworkflow.utils import Environ
 
 from resmap.constants import *
 
-
+__version__ = '3.0.1'
 _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
