@@ -23,6 +23,8 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+import os
+
 from matplotlib import cm
 
 from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
@@ -140,7 +142,7 @@ class ResMapViewer(LocalResolutionViewer):
 
     def _showVolumeColorSlices(self, param=None):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
-        imgData, min_Res, max_Res = self.getImgData(imageFile)
+        imgData, min_Res, max_Res, voldim = self.getImgData(imageFile)
 
         xplotter = EmPlotter(x=2, y=2, mainTitle="Local Resolution Slices "
                                                     "along %s-axis."
@@ -161,13 +163,14 @@ class ResMapViewer(LocalResolutionViewer):
         import numpy as np
         img = ImageHandler().read(imgFile)
         imgData = img.getData()
+        voldim = (img.getDimensions())[:-1]
 
         minRes = np.amin(imgData)
         background = self.getBackGroundValue(imgData.flatten())
         imgData2 = np.ma.masked_where(
             np.logical_or(np.greater_equal(imgData, background), np.less_equal(imgData,0.1)), imgData, copy=True)
         maxRes = np.amax(imgData2)
-        return imgData2, minRes, maxRes
+        return imgData2, minRes, maxRes, voldim
 
     @classmethod
     def getBackGroundValue (cls, data):
@@ -217,7 +220,8 @@ class ResMapViewer(LocalResolutionViewer):
 
         fnResVol = self.protocol._getFileName(RESMAP_VOL)
         fnOrigMap = self.protocol.volumeHalf1.get().getFileName()
-        cmdFile = self.protocol._getExtraPath('chimera_resolution_map.cmd')
+        cmdFile = os.path.abspath(
+            self.protocol._getExtraPath('chimera_resolution_map.py'))
         sampRate = self.protocol.volumeHalf1.get().getSamplingRate()
         self.createChimeraScript(cmdFile, fnResVol, fnOrigMap, sampRate)
         view = ChimeraView(cmdFile)
