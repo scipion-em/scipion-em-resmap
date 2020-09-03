@@ -27,6 +27,7 @@ from matplotlib import cm
 
 from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
 from pwem.emlib.image import ImageHandler
+from pwem.wizards import ColorScaleWizardBase
 from pyworkflow.protocol.params import LabelParam, EnumParam, StringParam, \
     LEVEL_ADVANCED, IntParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
@@ -59,8 +60,6 @@ class ResMapViewer(LocalResolutionViewer):
         form.addSection(label='Visualization')
         form.addParam('doShowLogFile', LabelParam,
                       label="Show log file")
-        form.addParam('doShowChimeraAnimation', LabelParam,
-                      label="Show Chimera animation")
 
         form.addParam('doShowVolumeSlices', LabelParam,
                       label="Show resolution slices")
@@ -72,18 +71,6 @@ class ResMapViewer(LocalResolutionViewer):
                       label="Show resolution histogram")
 
         group = form.addGroup('Colored resolution Slices and Volumes')
-        group.addParam('colorMap', EnumParam, choices=COLOR_CHOICES,
-                       default=COLOR_JET,
-                       label='Color map',
-                       help='Select the color map to apply to the resolution map. '
-                            'http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html.')
-
-        group.addParam('otherColorMap', StringParam, default='jet',
-                       condition=binaryCondition,
-                       label='Customized Color map',
-                       help='Name of a color map to apply to the resolution map.'
-                            ' Valid names can be found at '
-                            'http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html')
         group.addParam('sliceAxis', EnumParam, default=AX_Z,
                        choices=['x', 'y', 'z'],
                        display=EnumParam.DISPLAY_HLIST,
@@ -102,6 +89,8 @@ class ResMapViewer(LocalResolutionViewer):
         group.addParam('doShowChimera', LabelParam,
                        label="Show Resolution map in Chimera")
 
+        ColorScaleWizardBase.defineColorScaleParams(group)
+
     def _getVisualizeDict(self):
         self.protocol._createFilenameTemplates()
         return {
@@ -118,12 +107,6 @@ class ResMapViewer(LocalResolutionViewer):
     def _showLogFile(self, param=None):
         return [self.textView([self.protocol._getFileName('logFn')],
                               "ResMap log file")]
-
-    def _showChimeraAnimation(self, param=None):
-
-        view = ChimeraView(CHIMERA_CMD, cwd=self.protocol._getExtraPath())
-        return [view]
-
 
     def _showVolumeSlices(self, param=None):
         cm = DataView(self.protocol._getFileName(RESMAP_VOL))
