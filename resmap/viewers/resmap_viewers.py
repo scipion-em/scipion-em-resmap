@@ -25,16 +25,16 @@
 # **************************************************************************
 from matplotlib import cm
 
-from pwem.constants import (COLOR_CHOICES, COLOR_JET, COLOR_OTHER, AX_Z)
+from pwem.constants import COLOR_OTHER, AX_Z
 from pwem.emlib.image import ImageHandler
 from pwem.wizards import ColorScaleWizardBase
-from pyworkflow.protocol.params import LabelParam, EnumParam, StringParam, \
+from pyworkflow.protocol.params import LabelParam, EnumParam, \
     LEVEL_ADVANCED, IntParam
 from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
 from pwem.viewers import (ChimeraView, LocalResolutionViewer, DataView,
                           EmPlotter)
 
-from resmap import CHIMERA_CMD, RESMAP_VOL
+from resmap import RESMAP_VOL
 from resmap.protocols import ProtResMap
 import matplotlib.pyplot as plt
 
@@ -89,13 +89,19 @@ class ResMapViewer(LocalResolutionViewer):
         group.addParam('doShowChimera', LabelParam,
                        label="Show Resolution map in Chimera")
 
-        ColorScaleWizardBase.defineColorScaleParams(group)
+        # get default values
+        imageFile = self.protocol._getFileName(RESMAP_VOL)
+        _, min_Res, max_Res, _ = self.getImgData(imageFile)
+
+        ColorScaleWizardBase.defineColorScaleParams(group, defaultLowest=min_Res, defaultHighest=max_Res)
+
+    def getImgData(self, imgFile):
+        return LocalResolutionViewer.getImgData(self, imgFile,maxMaskValue = 99.9)
 
     def _getVisualizeDict(self):
         self.protocol._createFilenameTemplates()
         return {
                 'doShowLogFile': self._showLogFile,
-                'doShowChimeraAnimation': self._showChimeraAnimation,
                 'doShowOriginalVolumeSlices': self._showOriginalVolumeSlices,
                 'doShowVolumeSlices': self._showVolumeSlices,
                 'doShowVolumeColorSlices': self._showVolumeColorSlices,
@@ -123,7 +129,7 @@ class ResMapViewer(LocalResolutionViewer):
 
     def _showVolumeColorSlices(self, param=None):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
-        imgData, min_Res, max_Res = self.getImgData(imageFile)
+        imgData, _, _, _ = self.getImgData(imageFile)
 
         xplotter = EmPlotter(x=2, y=2, mainTitle="Local Resolution Slices "
                                                     "along %s-axis."
@@ -134,23 +140,11 @@ class ResMapViewer(LocalResolutionViewer):
             sliceNumber = self.getSlice(i, imgData)
             a = xplotter.createSubPlot("Slice %s" % (sliceNumber + 1), '', '')
             matrix = self.getSliceImage(imgData, sliceNumber, self._getAxis())
-            plot = xplotter.plotMatrix(a, matrix, min_Res, max_Res,
+            plot = xplotter.plotMatrix(a, matrix, self.lowest.get(), self.highest.get(),
                                        cmap=self.getColorMap(),
                                        interpolation="nearest")
         xplotter.getColorBar(plot)
         return [xplotter]
-
-    def getImgData(self, imgFile):
-        import numpy as np
-        img = ImageHandler().read(imgFile)
-        imgData = img.getData()
-
-        minRes = np.amin(imgData)
-        background = self.getBackGroundValue(imgData.flatten())
-        imgData2 = np.ma.masked_where(
-            np.logical_or(np.greater_equal(imgData, background), np.less_equal(imgData,0.1)), imgData, copy=True)
-        maxRes = np.amax(imgData2)
-        return imgData2, minRes, maxRes
 
     @classmethod
     def getBackGroundValue (cls, data):
@@ -158,21 +152,20 @@ class ResMapViewer(LocalResolutionViewer):
 
     def _showOneColorslice(self, param=None):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
-        imgData, min_Res, max_Res = self.getImgData(imageFile)
-
+        imgData, _, _, volDims = self.getImgData(imageFile)
+        print(volDims)
         xplotter = EmPlotter(x=1, y=1, mainTitle="Local Resolution Slices "
                                                     "along %s-axis."
                                                     % self._getAxis())
         sliceNumber = self.sliceNumber.get()
         if sliceNumber < 0:
-            x, _, _, _ = ImageHandler().getDimensions(imageFile)
-            sliceNumber = x / 2
+            sliceNumber = volDims[0] / 2
         else:
             sliceNumber -= 1
         # sliceNumber has no sense to start in zero
         a = xplotter.createSubPlot("Slice %s" % (sliceNumber + 1), '', '')
         matrix = self.getSliceImage(imgData, sliceNumber, self._getAxis())
-        plot = xplotter.plotMatrix(a, matrix, min_Res, max_Res,
+        plot = xplotter.plotMatrix(a, matrix, self.lowest.get(), self.highest.get(),
                                    cmap=self.getColorMap(),
                                    interpolation="nearest")
         xplotter.getColorBar(plot)
@@ -199,18 +192,22 @@ class ResMapViewer(LocalResolutionViewer):
     def _showChimera(self, param=None):
 
         fnResVol = self.protocol._getFileName(RESMAP_VOL)
-        fnOrigMap = self.protocol.volumeHalf1.get().getFileName()
-        cmdFile = self.protocol._getExtraPath('chimera_resolution_map.cmd')
-        sampRate = self.protocol.volumeHalf1.get().getSamplingRate()
-        self.createChimeraScript(cmdFile, fnResVol, fnOrigMap, sampRate)
+
+        vol = self.protocol.volumeHalf1.get()
+
+        fnOrigMap = vol.getFileName()
+        sampRate = vol.getSamplingRate()
+
+        cmdFile = self.protocol._getExtraPath('chimera_resolution_map.py')
+        self.createChimeraScript(cmdFile, fnResVol, fnOrigMap, sampRate,
+                                 numColors=self.intervals.get(),
+                                 lowResLimit=self.highest.get(),
+                                 highResLimit=self.lowest.get())
         view = ChimeraView(cmdFile)
         return [view]
 
     def getColorMap(self):
-        if COLOR_CHOICES[self.colorMap.get()] == 'other':
-            cmap = cm.get_cmap(self.otherColorMap.get())
-        else:
-            cmap = cm.get_cmap(COLOR_CHOICES[self.colorMap.get()])
+        cmap = cm.get_cmap(self.colorMap.get())
         if cmap is None:
             cmap = cm.jet
         return cmap
