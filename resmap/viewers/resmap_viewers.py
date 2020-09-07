@@ -23,6 +23,8 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+import os
+
 from matplotlib import cm
 
 from pwem.constants import COLOR_OTHER, AX_Z
@@ -192,7 +194,6 @@ class ResMapViewer(LocalResolutionViewer):
     def _showChimera(self, param=None):
 
         fnResVol = self.protocol._getFileName(RESMAP_VOL)
-
         vol = self.protocol.volumeHalf1.get()
 
         fnOrigMap = vol.getFileName()
