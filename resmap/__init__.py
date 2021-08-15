@@ -31,7 +31,7 @@ from pyworkflow.utils import Environ
 
 from resmap.constants import *
 
-__version__ = '3.0.2'
+__version__ = '3.0.3'
 _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
@@ -45,6 +45,7 @@ class Plugin(pwem.Plugin):
         cls._defineEmVar(RESMAP_HOME, 'resmap-1.95')
         cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Centos7x64')
         cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V8.0.61-sm60_gpu.so')
+        cls._defineVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
     def getEnviron(cls):
@@ -52,6 +53,8 @@ class Plugin(pwem.Plugin):
         environ = Environ(os.environ)
         environ.update({'PATH': Plugin.getHome()},
                        position=Environ.BEGIN)
+        cudaLib = cls.getVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
+        environ.addLibrary(cudaLib)
         return environ
 
     @classmethod
