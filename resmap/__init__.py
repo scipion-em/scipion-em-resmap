@@ -31,7 +31,7 @@ from pyworkflow.utils import Environ
 
 from resmap.constants import *
 
-__version__ = '3.0.3'
+__version__ = '3.0.4'
 _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
@@ -39,12 +39,13 @@ _references = ['kucukelbir2014']
 class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
+    _url = "https://sourceforge.net/projects/resmap-latest/"
 
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(RESMAP_HOME, 'resmap-1.95')
         cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Centos7x64')
-        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V8.0.61-sm60_gpu.so')
+        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V10.1.105-sm35_gpu.so')
         cls._defineVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
