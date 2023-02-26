@@ -39,7 +39,7 @@ _references = ['kucukelbir2014']
 class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
-    _url = "https://sourceforge.net/projects/resmap-latest/"
+    _url = "https://github.com/scipion-em/scipion-em-resmap"
 
     @classmethod
     def _defineVariables(cls):
