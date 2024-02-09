@@ -27,14 +27,19 @@
 
 import os.path
 import re
+from enum import Enum
 
 import pyworkflow.protocol.params as params
 from pwem.objects import Volume
 from pwem.protocols import ProtAnalysis3D
 from pwem.emlib.image import ImageHandler
 
-import resmap
-from resmap.constants import *
+from resmap import Plugin
+from resmap.constants import RESMAP_VOL, CHIMERA_CMD
+
+
+class outputs(Enum):
+    Volume = Volume
 
 
 class ProtResMap(ProtAnalysis3D):
@@ -45,6 +50,7 @@ class ProtResMap(ProtAnalysis3D):
     Please find the manual at https://sourceforge.net/projects/resmap-latest
     """
     _label = 'local resolution'
+    _possibleOutputs = outputs
 
     INPUT_HELP = """ Input volume(s) for ResMap.
     Required volume properties:
@@ -57,9 +63,6 @@ class ProtResMap(ProtAnalysis3D):
            While a similar effect is often obtained by B-factor sharpening,
            please make sure that the spectrum does not blow up near Nyquist.
     """
-
-    def __init__(self, **kwargs):
-        ProtAnalysis3D.__init__(self, **kwargs)
 
     def _createFilenameTemplates(self):
         """ Centralize the names of the files. """
@@ -127,10 +130,10 @@ class ProtResMap(ProtAnalysis3D):
 
         group = form.addGroup('Extra parameters')
         group.addParam('stepRes', params.FloatParam, default=1.,
-                       label='Step size (Ang):',
+                       label='Step size (A)',
                        help='in Angstroms (min 0.25, default 1.0)')
         line = group.addLine('Resolution Range (A)',
-                             help="Default (0): algorithm will start a just above\n"
+                             help="Default (0): algorithm will start just above\n"
                                   "             2*voxelSize until 4*voxelSize.   \n"
                                   "These fields are provided to accelerate computation "
                                   "if you are only interested in analyzing a specific "
@@ -140,7 +143,7 @@ class ProtResMap(ProtAnalysis3D):
         line.addParam('minRes', params.FloatParam, default=0., label='Min')
         line.addParam('maxRes', params.FloatParam, default=0., label='Max')
         group.addParam('pVal', params.FloatParam, default=0.05,
-                       label='Confidence level:',
+                       label='Confidence level',
                        help="P-value, usually between [0.01, 0.05].\n\n"
                             "This is the p-value of the statistical hypothesis test "
                             "on which ResMap is based on. It is customarily set to  "
@@ -169,7 +172,7 @@ class ProtResMap(ProtAnalysis3D):
 
     def estimateResolutionStep(self, args):
         """ Call ResMap with the appropriate parameters. """
-        program = resmap.Plugin.getProgram()
+        program = Plugin.getProgram()
         self.runJob(program, args, cwd=self._getExtraPath(),
                     numberOfThreads=1)
 
@@ -178,7 +181,7 @@ class ProtResMap(ProtAnalysis3D):
         outputVolumeResmap.setSamplingRate(self.volumeHalf1.get().getSamplingRate())
         outputVolumeResmap.setFileName(self._getFileName(RESMAP_VOL))
 
-        self._defineOutputs(outputVolume=outputVolumeResmap)
+        self._defineOutputs(**{outputs.Volume.name: outputVolumeResmap})
         self._defineTransformRelation(self.volumeHalf1, outputVolumeResmap)
         self._defineTransformRelation(self.volumeHalf2, outputVolumeResmap)
 
@@ -237,7 +240,7 @@ class ProtResMap(ProtAnalysis3D):
 
         if self.useGpu:
             args += " --use_gpu=yes --set_gpu=%s" % self.gpuList.get()
-            args += ' --lib_krnl_gpu="%s"' % resmap.Plugin.getGpuLib()
+            args += ' --lib_krnl_gpu="%s"' % Plugin.getGpuLib()
 
         if self.doBenchmarking:
             args += ' --doBenchMarking'
