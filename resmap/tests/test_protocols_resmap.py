@@ -45,8 +45,7 @@ class TestResMapBase(BaseTest):
         print(magentaStr("\n==> Importing data - volumes:"))
         cls.protImport = cls.newProtocol(ProtImportVolumes,
                                          filesPath=pattern,
-                                         samplingRate=samplingRate
-                                         )
+                                         samplingRate=samplingRate)
         cls.launchProtocol(cls.protImport)
         return cls.protImport
 
@@ -56,8 +55,7 @@ class TestResMapBase(BaseTest):
         print(magentaStr("\n==> Importing data - mask:"))
         cls.protImport = cls.newProtocol(ProtImportMask,
                                          maskPath=pattern,
-                                         samplingRate=samplingRate
-                                         )
+                                         samplingRate=samplingRate)
         cls.launchProtocol(cls.protImport)
         return cls.protImport
 

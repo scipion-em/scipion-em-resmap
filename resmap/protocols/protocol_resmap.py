@@ -25,18 +25,16 @@
 # *
 # **************************************************************************
 
-import os
+import os.path
 import re
 
 import pyworkflow.protocol.params as params
 from pwem.objects import Volume
 from pwem.protocols import ProtAnalysis3D
 from pwem.emlib.image import ImageHandler
-from pyworkflow.utils import exists
 
 import resmap
 from resmap.constants import *
-
 
 
 class ProtResMap(ProtAnalysis3D):
@@ -128,7 +126,7 @@ class ProtResMap(ProtAnalysis3D):
                       help="By default ResMap will display 2D results.")
 
         group = form.addGroup('Extra parameters')
-        group.addParam('stepRes', params.FloatParam, default=1,
+        group.addParam('stepRes', params.FloatParam, default=1.,
                        label='Step size (Ang):',
                        help='in Angstroms (min 0.25, default 1.0)')
         line = group.addLine('Resolution Range (A)',
@@ -139,8 +137,8 @@ class ProtResMap(ProtAnalysis3D):
                                   "resolution range. It is usually a good idea to provide "
                                   "a maximum resolution value to save time. Another way to "
                                   "save computation is to provide a larger step size.")
-        line.addParam('minRes', params.FloatParam, default=0, label='Min')
-        line.addParam('maxRes', params.FloatParam, default=0, label='Max')
+        line.addParam('minRes', params.FloatParam, default=0., label='Min')
+        line.addParam('maxRes', params.FloatParam, default=0., label='Max')
         group.addParam('pVal', params.FloatParam, default=0.05,
                        label='Confidence level:',
                        help="P-value, usually between [0.01, 0.05].\n\n"
@@ -157,10 +155,10 @@ class ProtResMap(ProtAnalysis3D):
         locations = [i.get().getLocation() for i in inputs]
 
         self._createFilenameTemplates()
-        self._insertFunctionStep('convertInputStep', *locations)
+        self._insertFunctionStep(self.convertInputStep, *locations)
         args = self._prepareParams()
-        self._insertFunctionStep('estimateResolutionStep', args)
-        self._insertFunctionStep('createOutputStep')
+        self._insertFunctionStep(self.estimateResolutionStep, args)
+        self._insertFunctionStep(self.createOutputStep)
 
     # --------------------------- STEPS functions -----------------------------
     def convertInputStep(self, volLocation1, volLocation2):
@@ -189,7 +187,7 @@ class ProtResMap(ProtAnalysis3D):
         summary = []
 
         self._createFilenameTemplates()
-        if exists(self._getFileName('outResmapVol')):
+        if os.path.exists(self._getFileName('outResmapVol')):
             results = self._parseOutput()
             summary.append('Mean resolution: %0.2f A' % results[0])
             summary.append('Median resolution: %0.2f A' % results[1])
@@ -249,12 +247,11 @@ class ProtResMap(ProtAnalysis3D):
     def _parseOutput(self):
         meanRes, medianRes = 0, 0
         ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-        f = open(self._getFileName('logFn'), 'r')
-        for line in f.readlines():
-            if 'MEAN RESOLUTION in MASK' in line:
-                meanRes = ansi_escape.sub('', line.strip().split('=')[1])
-            elif 'MEDIAN RESOLUTION in MASK' in line:
-                medianRes = ansi_escape.sub('', line.strip().split('=')[1])
-        f.close()
+        with open(self._getFileName('logFn'), 'r') as f:
+            for line in f.readlines():
+                if 'MEAN RESOLUTION in MASK' in line:
+                    meanRes = ansi_escape.sub('', line.strip().split('=')[1])
+                elif 'MEDIAN RESOLUTION in MASK' in line:
+                    medianRes = ansi_escape.sub('', line.strip().split('=')[1])
 
         return tuple(map(float, (meanRes, medianRes)))

@@ -1,3 +1,4 @@
+3.0.5 - minor changes
 3.0.4 - Update CUDA lib module
 3.0.3 - Add RESMAP_CUDA_LIB var
 1.1.0 - Migrated to python3

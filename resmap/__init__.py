@@ -31,7 +31,7 @@ from pyworkflow.utils import Environ
 
 from resmap.constants import *
 
-__version__ = '3.0.4'
+__version__ = '3.0.5'
 _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
@@ -56,6 +56,7 @@ class Plugin(pwem.Plugin):
                        position=Environ.BEGIN)
         cudaLib = cls.getVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
+
         return environ
 
     @classmethod
@@ -73,7 +74,6 @@ class Plugin(pwem.Plugin):
     @classmethod
     def defineBinaries(cls, env):
         """ Define required binaries in the given Environment. """
-
         env.addPackage('resmap', version='1.95',
                        tar='resmap-1.95.tgz',
                        default=True)
