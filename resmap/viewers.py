@@ -122,10 +122,15 @@ class ResMapViewer(LocalResolutionViewer):
         return [cm]
 
     def _showOriginalVolumeSlices(self, param=None):
+        if self.protocol.inputType == 0:
+            vols = self.protocol.volume.get().getHalfMaps(asList=True)
+        else:
+            vols = [
+                self.protocol.volumeHalf1.get().getFileName(),
+                self.protocol.volumeHalf2.get().getFileName()
+            ]
 
-        cm = DataView(self.protocol.volumeHalf1.get().getFileName())
-        cm2 = DataView(self.protocol.volumeHalf2.get().getFileName())
-        return [cm, cm2]
+        return [DataView(v) for v in vols]
 
     def _showVolumeColorSlices(self, param=None):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
@@ -190,7 +195,10 @@ class ResMapViewer(LocalResolutionViewer):
 
     def _showChimera(self, param=None):
         fnResVol = self.protocol._getFileName(RESMAP_VOL)
-        vol = self.protocol.volumeHalf1.get()
+        if self.protocol.inputType == 0:
+            vol = self.protocol.volume.get()
+        else:
+            vol = self.protocol.volumeHalf1.get()
 
         fnOrigMap = vol.getFileName()
         sampRate = vol.getSamplingRate()

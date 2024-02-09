@@ -30,6 +30,7 @@ import re
 from enum import Enum
 
 import pyworkflow.protocol.params as params
+import pyworkflow.utils as pwutils
 from pwem.objects import Volume
 from pwem.protocols import ProtAnalysis3D
 from pwem.emlib.image import ImageHandler
@@ -67,11 +68,11 @@ class ProtResMap(ProtAnalysis3D):
     def _createFilenameTemplates(self):
         """ Centralize the names of the files. """
         myDict = {
-            'half1': self._getExtraPath('volume1.map'),
-            'half2': self._getExtraPath('volume2.map'),
-            'mask': self._getExtraPath('mask.map'),
-            'outVol': self._getExtraPath('volume1_ori.map'),
-            RESMAP_VOL: self._getExtraPath('volume1_ori_resmap.map'),
+            'half1': self._getExtraPath('volume1.mrc'),
+            'half2': self._getExtraPath('volume2.mrc'),
+            'mask': self._getExtraPath('mask.mrc'),
+            'outVol': self._getExtraPath('volume1_ori.mrc'),
+            RESMAP_VOL: self._getExtraPath('volume1_ori_resmap.mrc'),
             'outChimeraCmd': self._getExtraPath(CHIMERA_CMD),
             'logFn': self._getExtraPath('ResMaps.log')
         }
@@ -100,11 +101,22 @@ class ProtResMap(ProtAnalysis3D):
                             "for the calculation (this upper limit holds "
                             "for GTX 1080 Ti GPUs.")
         form.addSection(label='Input')
+        form.addParam('inputType', params.EnumParam, default=0,
+                      display=params.EnumParam.DISPLAY_HLIST,
+                      label='Input type',
+                      choices=['single volume', 'two halfmaps'],)
+        form.addParam('volume', params.PointerParam,
+                      condition='inputType==0',
+                      label="Input volume", important=True,
+                      pointerClass='Volume',
+                      help=self.INPUT_HELP)
         form.addParam('volumeHalf1', params.PointerParam,
+                      condition='inputType==1',
                       label="Volume half 1", important=True,
                       pointerClass='Volume',
                       help=self.INPUT_HELP)
         form.addParam('volumeHalf2', params.PointerParam,
+                      condition='inputType==1',
                       pointerClass='Volume',
                       label="Volume half 2", important=True,
                       help=self.INPUT_HELP)
@@ -154,36 +166,44 @@ class ProtResMap(ProtAnalysis3D):
 
     # --------------------------- INSERT steps functions ----------------------
     def _insertAllSteps(self):
-        inputs = [self.volumeHalf1, self.volumeHalf2]
-        locations = [i.get().getLocation() for i in inputs]
-
         self._createFilenameTemplates()
-        self._insertFunctionStep(self.convertInputStep, *locations)
-        args = self._prepareParams()
-        self._insertFunctionStep(self.estimateResolutionStep, args)
+        self._insertFunctionStep(self.convertInputStep)
+        self._insertFunctionStep(self.estimateResolutionStep)
         self._insertFunctionStep(self.createOutputStep)
 
     # --------------------------- STEPS functions -----------------------------
-    def convertInputStep(self, volLocation1, volLocation2):
-        """ Convert input volume to .mrc as expected by ResMap. """
-        ih = ImageHandler()
-        ih.convert(volLocation1, self._getFileName('half1'))
-        ih.convert(volLocation2, self._getFileName('half2'))
+    def convertInputStep(self):
+        """ Convert input volumes to .mrc as expected by ResMap. """
+        if self.inputType == 0:
+            halfMaps = self.volume.get().getHalfMaps(asList=True)
+            self.convertBinaryVol(halfMaps[0], self._getFileName("half1"))
+            self.convertBinaryVol(halfMaps[1], self._getFileName("half2"))
+        else:
+            self.convertBinaryVol(self.volumeHalf1.get(), self._getFileName("half1"))
+            self.convertBinaryVol(self.volumeHalf2.get(), self._getFileName("half2"))
 
-    def estimateResolutionStep(self, args):
+        if self.applyMask:
+            self.convertBinaryVol(self.maskVolume.get(), self._getFileName("mask"))
+
+    def estimateResolutionStep(self):
         """ Call ResMap with the appropriate parameters. """
         program = Plugin.getProgram()
+        args = self.prepareParams()
         self.runJob(program, args, cwd=self._getExtraPath(),
                     numberOfThreads=1)
 
     def createOutputStep(self):
-        outputVolumeResmap = Volume()
-        outputVolumeResmap.setSamplingRate(self.volumeHalf1.get().getSamplingRate())
-        outputVolumeResmap.setFileName(self._getFileName(RESMAP_VOL))
+        outVol = Volume()
+        outVol.setSamplingRate(self.getInputSamplingRate())
+        outVol.setFileName(self._getFileName(RESMAP_VOL))
 
-        self._defineOutputs(**{outputs.Volume.name: outputVolumeResmap})
-        self._defineTransformRelation(self.volumeHalf1, outputVolumeResmap)
-        self._defineTransformRelation(self.volumeHalf2, outputVolumeResmap)
+        self._defineOutputs(**{outputs.Volume.name: outVol})
+
+        if self.inputType == 0:
+            self._defineTransformRelation(self.volume, outVol)
+        else:
+            self._defineTransformRelation(self.volumeHalf1, outVol)
+            self._defineTransformRelation(self.volumeHalf2, outVol)
 
     # --------------------------- INFO functions ------------------------------
     def _summary(self):
@@ -191,7 +211,7 @@ class ProtResMap(ProtAnalysis3D):
 
         self._createFilenameTemplates()
         if os.path.exists(self._getFileName('outResmapVol')):
-            results = self._parseOutput()
+            results = self.parseOutput()
             summary.append('Mean resolution: %0.2f A' % results[0])
             summary.append('Median resolution: %0.2f A' % results[1])
         else:
@@ -201,53 +221,47 @@ class ProtResMap(ProtAnalysis3D):
 
     def _validate(self):
         errors = []
-        half1 = self.volumeHalf1.get()
-        half2 = self.volumeHalf2.get()
-        if half1.getSamplingRate() != half2.getSamplingRate():
-            errors.append(
-                'The selected half volumes have not the same pixel size.')
-        if half1.getXDim() != half2.getXDim():
-            errors.append(
-                'The selected half volumes have not the same dimensions.')
+
+        if self.inputType == 0 and not self.volume.get().hasHalfMaps():
+            errors.append("Input volume has no associated half maps")
+
+        elif self.inputType == 1:
+            half1 = self.volumeHalf1.get()
+            half2 = self.volumeHalf2.get()
+            if half1.getSamplingRate() != half2.getSamplingRate():
+                errors.append(
+                    'The selected half volumes have not the same pixel size.')
+            if half1.getXDim() != half2.getXDim():
+                errors.append(
+                    'The selected half volumes have not the same dimensions.')
 
         return errors
 
     # --------------------------- UTILS functions -----------------------------
-    def _prepareParams(self):
-        args = " --noguiSplit %(half1)s %(half2)s"
-        args += " --vxSize=%0.3f" % self.volumeHalf1.get().getSamplingRate()
-        args += " --pVal=%(pVal)f --maxRes=%(maxRes)f --minRes=%(minRes)f"
-        args += " --stepRes=%(stepRes)f"
-
-        if self.show2D:
-            args += " --vis2D"
-
-        if self.applyMask:
-            # convert mask to map/ccp4
-            ih = ImageHandler()
-            ih.convert(self.maskVolume.get().getLocation(),
-                       self._getFileName('mask'))
-
-            args += " --maskVol=%s" % os.path.basename(self._getFileName('mask'))
-
-        params = {'half1': os.path.basename(self._getFileName('half1')),
-                  'half2': os.path.basename(self._getFileName('half2')),
-                  'pVal': self.pVal.get(),
-                  'maxRes': self.maxRes.get(),
-                  'minRes': self.minRes.get(),
-                  'stepRes': self.stepRes.get()
-                  }
+    def prepareParams(self):
+        args = [
+            "--noguiSplit",
+            os.path.basename(self._getFileName("half1")),
+            os.path.basename(self._getFileName("half2")),
+            f"--vxSize={self.getInputSamplingRate()}",
+            f"--pVal={self.pVal.get()}",
+            f"--maxRes={self.maxRes.get()}",
+            f"--minRes={self.minRes.get()}",
+            f"--stepRes={self.stepRes.get()}",
+            "--doBenchMarking" if self.doBenchmarking else "",
+            "--vis2D" if self.show2D else "",
+            f"--maskVol={os.path.basename(self._getFileName('mask'))}" if self.applyMask else ""
+        ]
 
         if self.useGpu:
-            args += " --use_gpu=yes --set_gpu=%s" % self.gpuList.get()
-            args += ' --lib_krnl_gpu="%s"' % Plugin.getGpuLib()
+            args.extend([
+                f"--use_gpu=yes --set_gpu={self.gpuList.get()}",
+                f'--lib_krnl_gpu="{Plugin.getGpuLib()}"'
+            ])
 
-        if self.doBenchmarking:
-            args += ' --doBenchMarking'
+        return " ".join(args)
 
-        return args % params
-
-    def _parseOutput(self):
+    def parseOutput(self):
         meanRes, medianRes = 0, 0
         ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
         with open(self._getFileName('logFn'), 'r') as f:
@@ -258,3 +272,19 @@ class ProtResMap(ProtAnalysis3D):
                     medianRes = ansi_escape.sub('', line.strip().split('=')[1])
 
         return tuple(map(float, (meanRes, medianRes)))
+
+    def convertBinaryVol(self, inputVol, outputVol):
+        """ Convert binary volume to mrc format. """
+        ih = ImageHandler()
+        fn = inputVol if isinstance(inputVol, str) else inputVol.getFileName()
+
+        if not fn.endswith('.mrc'):
+            ih.convert(fn, outputVol)
+        else:
+            pwutils.createLink(os.path.abspath(fn), outputVol)
+
+    def getInputSamplingRate(self):
+        if self.inputType == 0:
+            return self.volume.get().getSamplingRate()
+        else:
+            return self.volumeHalf1.get().getSamplingRate()
