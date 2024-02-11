@@ -35,18 +35,20 @@ class TestResMapBase(BaseTest):
     @classmethod
     def setData(cls, dataProject='resmap'):
         cls.dataset = DataSet.getDataSet(dataProject)
+        cls.vol = cls.dataset.getFile('betagal')
         cls.half1 = cls.dataset.getFile('betagal_half1')
         cls.half2 = cls.dataset.getFile('betagal_half2')
         cls.mask = cls.dataset.getFile('betagal_mask')
 
     @classmethod
-    def runImportVolumes(cls, pattern, samplingRate):
+    def runImportVolumes(cls, samplingRate, pattern, **kwargs):
         """ Run an Import volumes protocol. """
         print(magentaStr("\n==> Importing data - volumes:"))
         cls.protImport = cls.newProtocol(ProtImportVolumes,
+                                         setHalfMaps=True,
                                          filesPath=pattern,
-                                         samplingRate=samplingRate
-                                         )
+                                         samplingRate=samplingRate,
+                                         **kwargs)
         cls.launchProtocol(cls.protImport)
         return cls.protImport
 
@@ -56,8 +58,7 @@ class TestResMapBase(BaseTest):
         print(magentaStr("\n==> Importing data - mask:"))
         cls.protImport = cls.newProtocol(ProtImportMask,
                                          maskPath=pattern,
-                                         samplingRate=samplingRate
-                                         )
+                                         samplingRate=samplingRate)
         cls.launchProtocol(cls.protImport)
         return cls.protImport
 
@@ -67,38 +68,31 @@ class TestResMap(TestResMapBase):
     def setUpClass(cls):
         setupTestProject(cls)
         TestResMapBase.setData()
-        cls.protImportHalf1 = cls.runImportVolumes(cls.half1, 3.54)
-        cls.protImportHalf2 = cls.runImportVolumes(cls.half2, 3.54)
+        cls.protImportVol = cls.runImportVolumes(3.54,
+                                                 cls.vol,
+                                                 half1map=cls.half1,
+                                                 half2map=cls.half2)
         cls.protImportMask = cls.runImportMask(cls.mask, 3.54)
 
-    def testResmap1(self):
-        print(magentaStr("\n==> Testing resmap - no mask:"))
+    def _runTest(self, label, useMask=False):
+        print(magentaStr(f"\n==> Testing resmap {label}:"))
         resMap = self.newProtocol(ProtResMap,
-                                  volumeHalf1=self.protImportHalf1.outputVolume,
-                                  volumeHalf2=self.protImportHalf2.outputVolume,
+                                  objLabel=f"resmap {label}",
+                                  inputType=0,
+                                  volume=self.protImportVol.outputVolume,
                                   stepRes=0.5,
                                   minRes=7.5,
-                                  maxRes=20)
-        resMap._createFilenameTemplates()
-        output = resMap._getFileName("outResmapVol")
-        resMap.show2D.set(False)
-        resMap.doBenchmarking.set(True)
-        self.launchProtocol(resMap)
-        self.assertIsNotNone(output, "Resmap has failed")
+                                  maxRes=20,
+                                  show2D=False,
+                                  doBenchmarking=True)
+        if useMask:
+            resMap.applyMask.set(True)
+            resMap.maskVolume.set(self.protImportMask.outputMask)
 
-    def testResmap2(self):
-        print(magentaStr("\n==> Testing resmap - with mask:"))
-        resMap = self.newProtocol(ProtResMap,
-                                  volumeHalf1=self.protImportHalf1.outputVolume,
-                                  volumeHalf2=self.protImportHalf2.outputVolume,
-                                  applyMask=True,
-                                  maskVolume=self.protImportMask.outputMask,
-                                  stepRes=0.5,
-                                  minRes=7.5,
-                                  maxRes=20)
-        resMap._createFilenameTemplates()
-        output = resMap._getFileName("outResmapVol")
-        resMap.show2D.set(False)
-        resMap.doBenchmarking.set(True)
+        output = resMap._possibleOutputs.Volume.name
         self.launchProtocol(resMap)
-        self.assertIsNotNone(output, "Resmap (with mask) has failed")
+        self.assertIsNotNone(output, f"Resmap ({label}) has failed")
+
+    def testResmap(self):
+        self._runTest("- with mask", useMask=True)
+        self._runTest("- no mask")

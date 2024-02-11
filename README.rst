@@ -4,14 +4,31 @@ Resmap plugin
 
 This plugin provides a wrapper for `ResMap program <https://sourceforge.net/projects/resmap-latest>`_.
 
-.. figure:: http://scipion-test.cnb.csic.es:9980/badges/resmap_devel.svg
-   :align: left
-   :alt: build status
+.. image:: https://img.shields.io/pypi/v/scipion-em-resmap.svg
+        :target: https://pypi.python.org/pypi/scipion-em-resmap
+        :alt: PyPI release
+
+.. image:: https://img.shields.io/pypi/l/scipion-em-resmap.svg
+        :target: https://pypi.python.org/pypi/scipion-em-resmap
+        :alt: License
+
+.. image:: https://img.shields.io/pypi/pyversions/scipion-em-resmap.svg
+        :target: https://pypi.python.org/pypi/scipion-em-resmap
+        :alt: Supported Python versions
+
+.. image:: https://img.shields.io/sonar/quality_gate/scipion-em_scipion-em-resmap?server=https%3A%2F%2Fsonarcloud.io
+        :target: https://sonarcloud.io/dashboard?id=scipion-em_scipion-em-resmap
+        :alt: SonarCloud quality gate
+
+.. image:: https://img.shields.io/pypi/dm/scipion-em-resmap
+        :target: https://pypi.python.org/pypi/scipion-em-resmap
+        :alt: Downloads
+
 
 Installation
 ------------
 
-You will need to use `3.0 <https://github.com/I2PC/scipion/releases/tag/V2.0.0>`_ version of Scipion to be able to run these protocols. To install the plugin, you have two options:
+You will need to use 3.0+ version of Scipion to be able to run these protocols. To install the plugin, you have two options:
 
 a) Stable version
 
@@ -25,21 +42,21 @@ b) Developer's version
 
     .. code-block::
 
-        git clone https://github.com/scipion-em/scipion-em-resmap.git
+        git clone -b devel https://github.com/scipion-em/scipion-em-resmap.git
 
     * install
 
     .. code-block::
 
-        scipion installp -p path_to_scipion-em-resmap --devel
+        scipion installp -p /path/to/scipion-em-resmap --devel
 
-ResMap binaries will be installed automatically with the plugin, but you can also link an existing installation.
-Default installation path assumed is ``software/em/resmap-1.95``, if you want to change it, set *RESMAP_HOME* in ``scipion.conf`` file pointing to the folder where the ResMap is installed. ResMap binary (default ResMap-1.95-cuda-Centos7x64) and CUDA lib module (default ResMap_krnl-cuda-V8.0.61-sm60_gpu.so) can be set by *RESMAP* and *RESMAP_GPU_LIB* vars, respectively.
-You also might need to set *RESMAP_CUDA_LIB* in the config file pointing to the correct location of system CUDA libraries.
+* ResMap binaries will be installed automatically with the plugin, but you can also link an existing installation.
+* Default installation path assumed is ``software/em/resmap-1.95``, if you want to change it, set *RESMAP_HOME* in ``scipion.conf`` file pointing to the folder where the ResMap is installed. ResMap binary (default ResMap-1.95-cuda-Centos7x64) and CUDA lib module (default ResMap_krnl-cuda-V8.0.61-sm60_gpu.so) can be set by *RESMAP* and *RESMAP_GPU_LIB* vars, respectively.
+* You also might need to set *RESMAP_CUDA_LIB* in the config file pointing to the correct location of system CUDA libraries.
 
-To check the installation, simply run the following Scipion test: ``scipion test resmap.tests.test_protocols_resmap.TestResMap``
+To check the installation, simply run the following Scipion test:
 
-A complete list of tests can also be seen by executing ``scipion test --show --grep resmap``
+``scipion test resmap.tests.test_protocols_resmap.TestResMap``
 
 Supported versions
 ------------------

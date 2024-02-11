@@ -23,26 +23,24 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
-import os
-
 from matplotlib import cm
+import matplotlib.pyplot as plt
 
+from pyworkflow.protocol.params import (LabelParam, EnumParam, LEVEL_ADVANCED,
+                                        IntParam)
+from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
 from pwem.constants import COLOR_OTHER, AX_Z
 from pwem.emlib.image import ImageHandler
 from pwem.wizards import ColorScaleWizardBase
-from pyworkflow.protocol.params import LabelParam, EnumParam, \
-    LEVEL_ADVANCED, IntParam
-from pyworkflow.viewer import ProtocolViewer, DESKTOP_TKINTER
 from pwem.viewers import (ChimeraView, LocalResolutionViewer, DataView,
                           EmPlotter)
 
-from resmap import RESMAP_VOL
+from resmap.constants import RESMAP_VOL
 from resmap.protocols import ProtResMap
-import matplotlib.pyplot as plt
-
 
 
 binaryCondition = ('(colorMap == %d) ' % COLOR_OTHER)
+
 
 class ResMapViewer(LocalResolutionViewer):
     """Visualization tools for ResMap results. """
@@ -95,10 +93,12 @@ class ResMapViewer(LocalResolutionViewer):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
         _, min_Res, max_Res, _ = self.getImgData(imageFile)
 
-        ColorScaleWizardBase.defineColorScaleParams(group, defaultLowest=min_Res, defaultHighest=max_Res)
+        ColorScaleWizardBase.defineColorScaleParams(group,
+                                                    defaultLowest=min_Res,
+                                                    defaultHighest=max_Res)
 
-    def getImgData(self, imgFile):
-        return LocalResolutionViewer.getImgData(self, imgFile,maxMaskValue = 99.9)
+    def getImgData(self, imgFile, **kwargs):
+        return LocalResolutionViewer.getImgData(self, imgFile, maxMaskValue=99.9)
 
     def _getVisualizeDict(self):
         self.protocol._createFilenameTemplates()
@@ -121,21 +121,24 @@ class ResMapViewer(LocalResolutionViewer):
 
         return [cm]
 
-
     def _showOriginalVolumeSlices(self, param=None):
+        if self.protocol.inputType == 0:
+            vols = self.protocol.volume.get().getHalfMaps(asList=True)
+        else:
+            vols = [
+                self.protocol.volumeHalf1.get().getFileName(),
+                self.protocol.volumeHalf2.get().getFileName()
+            ]
 
-        cm = DataView(self.protocol.volumeHalf1.get().getFileName())
-        cm2 = DataView(self.protocol.volumeHalf2.get().getFileName())
-        return [cm, cm2]
-
+        return [DataView(v) for v in vols]
 
     def _showVolumeColorSlices(self, param=None):
         imageFile = self.protocol._getFileName(RESMAP_VOL)
         imgData, _, _, _ = self.getImgData(imageFile)
 
         xplotter = EmPlotter(x=2, y=2, mainTitle="Local Resolution Slices "
-                                                    "along %s-axis."
-                                                    % self._getAxis())
+                                                 "along %s-axis."
+                                                 % self._getAxis())
         # The slices to be shown are close to the center. Volume size is divided
         # in segments, the fourth central ones are selected i.e. 3,4,5,6
         for i in list(range(3, 7)):
@@ -149,7 +152,7 @@ class ResMapViewer(LocalResolutionViewer):
         return [xplotter]
 
     @classmethod
-    def getBackGroundValue (cls, data):
+    def getBackGroundValue(cls, data):
         return max(data) - 1
 
     def _showOneColorslice(self, param=None):
@@ -157,8 +160,8 @@ class ResMapViewer(LocalResolutionViewer):
         imgData, _, _, volDims = self.getImgData(imageFile)
         print(volDims)
         xplotter = EmPlotter(x=1, y=1, mainTitle="Local Resolution Slices "
-                                                    "along %s-axis."
-                                                    % self._getAxis())
+                                                 "along %s-axis."
+                                                 % self._getAxis())
         sliceNumber = self.sliceNumber.get()
         if sliceNumber < 0:
             sliceNumber = volDims[0] / 2
@@ -181,7 +184,7 @@ class ResMapViewer(LocalResolutionViewer):
         imgDataMax = self.getBackGroundValue(imgList)
         imgListNoZero = filter(lambda x: 0 < x < imgDataMax, imgList)
         nbins = 30
-        plotter = EmPlotter(x=1,y=1,mainTitle="  ")
+        plotter = EmPlotter(x=1, y=1, mainTitle="  ")
         plotter.createSubPlot("Resolution histogram",
                               "Resolution (A)", "# of Counts")
         plotter.plotHist(imgListNoZero, nbins)
@@ -190,11 +193,12 @@ class ResMapViewer(LocalResolutionViewer):
     def _getAxis(self):
         return self.getEnumText('sliceAxis')
 
-
     def _showChimera(self, param=None):
-
         fnResVol = self.protocol._getFileName(RESMAP_VOL)
-        vol = self.protocol.volumeHalf1.get()
+        if self.protocol.inputType == 0:
+            vol = self.protocol.volume.get()
+        else:
+            vol = self.protocol.volumeHalf1.get()
 
         fnOrigMap = vol.getFileName()
         sampRate = vol.getSamplingRate()
