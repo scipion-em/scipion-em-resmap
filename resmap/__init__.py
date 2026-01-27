@@ -27,6 +27,7 @@
 
 import os
 import pwem
+from pyworkflow import SPA
 from pyworkflow.utils import Environ
 
 from resmap.constants import *
@@ -40,6 +41,7 @@ class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
     _url = "https://github.com/scipion-em/scipion-em-resmap"
+    _processingField = [SPA]
 
     @classmethod
     def _defineVariables(cls):
