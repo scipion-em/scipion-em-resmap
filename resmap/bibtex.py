@@ -35,7 +35,7 @@
   pages={63--65},
   year={2014},
   publisher={Nature Publishing Group},
-  doi = {http://dx.doi.org/10.1038/nmeth.2727}
+  doi = {https://dx.doi.org/10.1038/nmeth.2727}
 }
 
 """

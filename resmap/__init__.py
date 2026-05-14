@@ -27,11 +27,12 @@
 
 import os
 import pwem
+from pyworkflow import SPA
 from pyworkflow.utils import Environ
 
 from resmap.constants import *
 
-__version__ = '3.0.3'
+__version__ = '3.1.1'
 _logo = "resmap_logo.png"
 _references = ['kucukelbir2014']
 
@@ -39,12 +40,14 @@ _references = ['kucukelbir2014']
 class Plugin(pwem.Plugin):
     _homeVar = RESMAP_HOME
     _pathVars = [RESMAP_HOME]
+    _url = "https://github.com/scipion-em/scipion-em-resmap"
+    _processingField = [SPA]
 
     @classmethod
     def _defineVariables(cls):
         cls._defineEmVar(RESMAP_HOME, 'resmap-1.95')
         cls._defineVar(RESMAP, 'ResMap-1.95-cuda-Centos7x64')
-        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V8.0.61-sm60_gpu.so')
+        cls._defineVar(RESMAP_GPU_LIB, 'ResMap_krnl-cuda-V10.1.105-sm35_gpu.so')
         cls._defineVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
 
     @classmethod
@@ -55,6 +58,7 @@ class Plugin(pwem.Plugin):
                        position=Environ.BEGIN)
         cudaLib = cls.getVar(RESMAP_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
+
         return environ
 
     @classmethod
@@ -72,7 +76,6 @@ class Plugin(pwem.Plugin):
     @classmethod
     def defineBinaries(cls, env):
         """ Define required binaries in the given Environment. """
-
         env.addPackage('resmap', version='1.95',
                        tar='resmap-1.95.tgz',
                        default=True)
