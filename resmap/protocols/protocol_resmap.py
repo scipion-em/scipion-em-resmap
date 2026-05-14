@@ -50,6 +50,27 @@ class ProtResMap(ProtAnalysis3D):
 
     Please find the manual at https://sourceforge.net/projects/resmap-latest
     """
+    """
+        ProtResMap is a cryo-EM local resolution analysis protocol that estimates
+        spatial resolution variations within 3D density maps using the external
+        ResMap software. The protocol accepts either a single reconstructed volume
+        containing associated half maps or two independent half maps, converting
+        them into MRC format before processing.
+
+        The workflow supports optional binary masking, configurable resolution
+        ranges, statistical confidence parameters, and optional GPU acceleration
+        for optimized performance on compatible datasets. During execution, the
+        protocol launches the ResMap engine, computes voxel-wise local resolution,
+        and generates an output resolution map together with statistical summaries
+        such as mean and median local resolution values extracted from execution logs.
+
+        Validation routines ensure that input half maps are compatible in sampling
+        rate and dimensions, while utility functions manage file conversion,
+        parameter preparation, and output parsing. From a biological perspective,
+        the protocol helps identify flexible, heterogeneous, or poorly resolved
+        regions within cryo-EM reconstructions, providing valuable information
+        for structural interpretation and map quality assessment.
+        """
     _label = 'local resolution'
     _possibleOutputs = outputs
 
